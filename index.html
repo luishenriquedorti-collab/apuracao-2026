@@ -4,152 +4,166 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Apuração SP 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: barra de status fixa no topo, depois uma lista por cargo (linhas em grade que viram cartões no celular). */
+/* Layout: cabeçalho com o andamento da apuração, depois um cartão por cargo
+   (lado a lado no computador, um embaixo do outro no celular). Visual claro de propósito. */
 :root {
-  --bg: #f5f6f4;
+  --bg: #f3f6fa;
   --surface: #ffffff;
-  --ink: #17201b;
-  --muted: #5d6a62;
-  --line: #dde2dc;
-  --accent: #0b6e4f;
-  --accent-soft: #e2f1ea;
-  --good: #0b7a3e;
-  --good-bg: #dcf3e4;
-  --warn: #8a5a00;
-  --warn-bg: #fbefd2;
-  --bad: #9b2c2c;
-  --bad-bg: #f8e1e1;
-  --neutral-bg: #eceeea;
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-num: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --ink: #1c2433;
+  --ink-2: #566175;
+  --muted: #8a93a4;
+  --line: #e7ebf2;
+  --accent: #2a78d6;
+  --accent-ink: #1c5cab;
+  --accent-soft: #eaf2fd;
+  --bar: #9ec5f4;
+  --bar-track: #eef2f8;
+  --good: #16803d;  --good-bg: #e6f6ec;  --good-dot: #0ca30c;
+  --warn: #8a5a00;  --warn-bg: #fff3d9;  --warn-dot: #fab219;
+  --bad: #a33b3b;   --bad-bg: #fcecec;
+  --neutral: #6b7486; --neutral-bg: #f0f2f6;
+  --shadow: 0 1px 2px rgba(28, 36, 51, .04), 0 6px 24px rgba(28, 36, 51, .06);
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #101512; --surface: #182019; --ink: #e8ede9; --muted: #9aa89f; --line: #2a352d;
-    --accent: #4cc398; --accent-soft: #19362a;
-    --good: #6fdc9b; --good-bg: #173a26; --warn: #f0c060; --warn-bg: #3a2f14;
-    --bad: #f39a9a; --bad-bg: #3d1d1d; --neutral-bg: #222b24;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #101512; --surface: #182019; --ink: #e8ede9; --muted: #9aa89f; --line: #2a352d;
-  --accent: #4cc398; --accent-soft: #19362a;
-  --good: #6fdc9b; --good-bg: #173a26; --warn: #f0c060; --warn-bg: #3a2f14;
-  --bad: #f39a9a; --bad-bg: #3d1d1d; --neutral-bg: #222b24;
-  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-  background: var(--bg); color: var(--ink); font-family: var(--font-ui);
-  font-size: 15px; line-height: 1.4; -webkit-text-size-adjust: 100%;
+  background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-size: 15px; line-height: 1.45; -webkit-text-size-adjust: 100%;
+  font-variant-numeric: tabular-nums;
 }
-.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 20px; }
 
-/* Barra de status */
-.bar {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-  background: var(--bg); border-bottom: 1px solid var(--line);
-  padding-block: 12px;
-}
-.bar-inner { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
-h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
-.meters { display: flex; flex-wrap: wrap; gap: 8px 18px; }
-.meter { display: grid; gap: 4px; min-width: 150px; }
-.meter-label { font-size: 12px; color: var(--muted); }
-.meter-label b { color: var(--ink); font-family: var(--font-num); font-variant-numeric: tabular-nums; }
-.track { height: 6px; border-radius: 3px; background: var(--neutral-bg); overflow: hidden; }
-.fill { height: 100%; width: 0; background: var(--accent); transition: width .6s ease; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
-.controls label { font-size: 12px; color: var(--muted); }
-select, button {
-  font: inherit; font-size: 14px; color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-height: 36px;
-}
-button { cursor: pointer; }
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+/* Cabeçalho */
+header { display: grid; gap: 18px; }
+.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em; margin: 2px 0 0; text-wrap: balance; }
+.live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.live.ok .dot { background: var(--good-dot); box-shadow: 0 0 0 0 rgba(12, 163, 12, .4); animation: pulse 2s infinite; }
+.live.err .dot { background: var(--bad); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(12, 163, 12, .35); } 70% { box-shadow: 0 0 0 7px rgba(12, 163, 12, 0); } 100% { box-shadow: 0 0 0 0 rgba(12, 163, 12, 0); } }
+
+.progress { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.prog { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 18px; display: grid; gap: 10px; }
+.prog-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.prog-label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.prog-value { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.prog-value small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+.track { height: 8px; border-radius: 4px; background: var(--bar-track); overflow: hidden; }
+.fill { height: 100%; width: 0; border-radius: 4px; background: var(--accent); transition: width .8s ease; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.field { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 4px 4px 12px; min-width: 0; }
+.field label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+select { font: inherit; font-weight: 600; color: var(--ink); border: 0; background: transparent; padding: 6px 4px; min-height: 34px; max-width: 220px; }
+button { font: inherit; font-weight: 700; font-size: 14px; border-radius: 12px; cursor: pointer; min-height: 40px; padding: 8px 16px; border: 1px solid transparent; }
+.btn-primary { background: var(--accent); color: var(--surface); }
+.btn-primary:hover { background: var(--accent-ink); }
+.btn-primary:disabled { opacity: .6; cursor: default; }
+.btn-ghost { background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; min-height: 34px; padding: 6px 12px; border-radius: 10px; }
+.btn-ghost:hover { border-color: var(--bar); }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.stamp { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.banner { margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+
+.banner { padding: 12px 16px; border-radius: 12px; font-size: 14px; }
+.banner.info { background: var(--accent-soft); color: var(--accent-ink); }
 .banner.err { background: var(--bad-bg); color: var(--bad); }
-.banner.info { background: var(--accent-soft); color: var(--ink); }
 
-/* Seções por cargo */
-section { margin-top: 24px; }
-.sec-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-h2 { font-size: 17px; margin: 0; }
-h2 span { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 6px; }
-.list { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.row {
-  display: grid; align-items: center; gap: 4px 12px;
-  grid-template-columns: minmax(0, 1fr) 110px 70px 64px 110px 150px;
-  padding: 10px 14px; border-top: 1px solid var(--line);
-}
-.row:first-child { border-top: 0; }
-.row.head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-block: 8px; background: var(--neutral-bg); }
-.row.head > :not(:first-child) { text-align: right; }
-.row.head > :last-child { text-align: left; }
-.who { min-width: 0; }
-.who .name { font-weight: 600; overflow-wrap: anywhere; }
-.who .meta { font-size: 12px; color: var(--muted); }
-.who .meta b { font-family: var(--font-num); color: var(--ink); font-weight: 600; }
-.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; text-align: right; }
-.num.big { font-weight: 700; font-size: 16px; }
-.num .k { display: none; }
-.pill { justify-self: start; display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--neutral-bg); color: var(--muted); white-space: nowrap; }
+/* Cargos */
+.cargos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; align-items: start; }
+.card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); padding: 20px 20px 8px; min-width: 0; }
+.card-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
+.vagas { font-size: 13px; color: var(--muted); font-weight: 600; }
+.list { list-style: none; margin: 0; padding: 0; }
+.cand { display: grid; gap: 8px; padding: 16px 0; border-top: 1px solid var(--line); }
+.list .cand:first-child { border-top: 0; }
+.c-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.c-name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.c-meta { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.c-meta b { color: var(--ink-2); font-weight: 700; }
+.c-nums { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; }
+.c-votes { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.c-votes small { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 4px; }
+.c-city { font-size: 14px; color: var(--ink-2); }
+.c-city b { color: var(--ink); font-weight: 800; font-size: 16px; }
+.c-bar { height: 6px; border-radius: 3px; background: var(--bar-track); overflow: hidden; }
+.c-bar span { display: block; height: 100%; width: 0; background: var(--bar); border-radius: 3px; transition: width .8s ease; }
+.c-foot { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.c-foot b { color: var(--ink-2); font-weight: 700; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: var(--neutral-bg); color: var(--neutral); flex: none; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .6; }
 .pill.good { background: var(--good-bg); color: var(--good); }
+.pill.good::before { background: var(--good-dot); opacity: 1; }
 .pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.warn::before { background: var(--warn-dot); opacity: 1; }
 .pill.bad { background: var(--bad-bg); color: var(--bad); }
-.sub-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 14px 0 6px; }
-.list.info .row { opacity: .85; }
-footer { margin-top: 28px; font-size: 12px; color: var(--muted); }
-footer a { color: var(--accent); }
 
-@media (max-width: 760px) {
-  .row.head { display: none; }
-  .row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; }
-  .who { grid-column: 1 / 4; }
-  .pill { grid-column: 4; justify-self: end; grid-row: 1; white-space: normal; text-align: right; }
-  .num { text-align: left; font-size: 14px; }
-  .num.big { font-size: 15px; }
-  .num .k { display: block; font-family: var(--font-ui); font-size: 11px; color: var(--muted); font-weight: 400; }
-  .meter { min-width: 0; flex: 1 1 140px; }
+.extra { margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.extra-title { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.extra .cand:first-child { border-top: 0; }
+.extra .c-votes { font-size: 18px; }
+
+footer { font-size: 12.5px; color: var(--muted); max-width: 70ch; }
+footer a { color: var(--accent-ink); }
+
+@media (max-width: 520px) {
+  .wrap { padding-block: 20px 40px; gap: 16px; }
+  .card { padding: 16px 16px 4px; border-radius: 16px; }
+  .controls button.btn-primary { flex: 1 1 auto; }
+  .field { flex: 1 1 100%; }
+  select { max-width: none; flex: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .fill, .c-bar span { transition: none; }
+  .live.ok .dot { animation: none; }
+}
 </style>
 </head>
 <body>
-<div class="bar">
-  <div class="wrap" style="padding-block: 0">
-    <div class="bar-inner">
-      <h1><small>Eleições 2026 · 1º turno · São Paulo</small>Apuração dos nossos candidatos</h1>
-      <div class="meters">
-        <div class="meter"><div class="meter-label">Urnas apuradas em SP: <b id="pst-uf">—</b></div><div class="track"><div class="fill" id="bar-uf"></div></div></div>
-        <div class="meter"><div class="meter-label">Urnas em <span id="city-name-m">—</span>: <b id="pst-mu">—</b></div><div class="track"><div class="fill" id="bar-mu"></div></div></div>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div>
+        <div class="eyebrow">Eleições 2026 · 1º turno · São Paulo</div>
+        <h1>Apuração dos nossos candidatos</h1>
+      </div>
+      <div class="live" id="live"><span class="dot"></span><span id="stamp">Buscando dados do TSE…</span></div>
+    </div>
+    <div class="progress">
+      <div class="prog">
+        <div class="prog-head"><span class="prog-label">Urnas apuradas em SP</span><span class="prog-value" id="pst-uf">—</span></div>
+        <div class="track"><div class="fill" id="bar-uf"></div></div>
+      </div>
+      <div class="prog">
+        <div class="prog-head"><span class="prog-label">Urnas apuradas em <span id="city-name-m">—</span></span><span class="prog-value" id="pst-mu">—</span></div>
+        <div class="track"><div class="fill" id="bar-mu"></div></div>
       </div>
     </div>
     <div class="controls">
-      <label for="city">Cidade</label>
-      <select id="city"><option>Carregando…</option></select>
-      <button id="refresh" class="primary" type="button">Atualizar agora</button>
-      <span class="stamp" id="stamp">Buscando dados do TSE…</span>
+      <div class="field"><label for="city">Cidade</label><select id="city"><option>Carregando…</option></select></div>
+      <button id="refresh" class="btn-primary" type="button">Atualizar agora</button>
     </div>
     <div id="banner" class="banner" hidden></div>
-  </div>
-</div>
+  </header>
 
-<main class="wrap">
-  <section id="sec-6"></section>
-  <section id="sec-7"></section>
+  <main class="cargos">
+    <section class="card" id="sec-6"></section>
+    <section class="card" id="sec-7"></section>
+  </main>
+
   <footer>
     Dados oficiais do TSE (<a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">resultados.tse.jus.br</a>), atualizados automaticamente a cada 60 segundos.
-    “Posição” é a colocação do candidato entre todos do cargo em SP, por número de votos. A eleição de deputado depende do quociente partidário, então a situação oficial (Eleito, Suplente) só aparece quando o TSE divulga.
+    A posição é a colocação do candidato entre todos do mesmo cargo em SP, por número de votos. A eleição de deputado depende do quociente partidário, então a situação oficial (Eleito, Suplente) só aparece quando o TSE divulga.
   </footer>
-</main>
+</div>
 
 <script>
 // ===== Configuração =====
@@ -184,9 +198,10 @@ const DEMO = location.hash === '#demo';
 let cidade = CIDADE_PADRAO;
 try { cidade = localStorage.getItem('apuracao-cidade') || CIDADE_PADRAO; } catch (e) {}
 let municipios = [];       // [{cd, nm}]
-let ultimo = {};           // cache do último resultado bom por cargo
+let ultimo = {};           // último resultado bom por cargo
 let contador = INTERVALO;
 let buscando = false;
+let falhou = false;
 
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => (n == null || isNaN(n)) ? '—' : n.toLocaleString('pt-BR');
@@ -228,8 +243,8 @@ function lerResultado(json) {
     mapa,
     vagas: carg ? toNum(carg.nv) : null,
     pst: json.s ? json.s.pst : '0,00',
-    hora: (json.dt || json.dg) + ' ' + (json.ht || json.hg),
-    totalizado: json.tf === 's',
+    hora: json.ht || json.hg,
+    data: json.dt || json.dg,
     temVotos: todos.some(d => d.vap > 0),
   };
 }
@@ -238,7 +253,7 @@ function situacao(c, temVotos) {
   if (!c) return ['Não encontrado', 'bad'];
   const st = c.st.trim();
   if (st) {
-    if (/n[aã]o eleito/i.test(st)) return [st, 'bad'];
+    if (/n[aã]o eleito/i.test(st)) return [st, ''];
     if (/eleito/i.test(st)) return [st, 'good'];
     if (/suplente/i.test(st)) return [st, 'warn'];
     return [st, ''];
@@ -247,23 +262,25 @@ function situacao(c, temVotos) {
   return [temVotos ? 'Em apuração' : 'Aguardando', ''];
 }
 
-function linha(nome, numero, uf, mu) {
+function cartao(nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
-  const meta = c ? `<b>${numero}</b> · ${c.partido} · urna: ${titulo(c.nmu)}` : `<b>${numero}</b>`;
-  return `<div class="row">
-    <div class="who"><div class="name">${titulo(nome)}</div><div class="meta">${meta}</div></div>
-    <div class="num big"><span class="k">Votos SP</span>${c ? fmt(c.vap) : '—'}</div>
-    <div class="num"><span class="k">% válidos</span>${c ? c.pvap + '%' : '—'}</div>
-    <div class="num"><span class="k">Posição</span>${c && uf.temVotos ? c.pos + 'º' : '—'}</div>
-    <div class="num big"><span class="k">${titulo(nomeCidade())}</span>${m ? fmt(m.vap) : '—'}</div>
-    <span class="pill ${cls}">${txt}</span>
-  </div>`;
-}
-
-function cabecalho() {
-  return `<div class="row head"><div>Candidato</div><div>Votos SP</div><div>% válidos</div><div>Posição</div><div>${titulo(nomeCidade())}</div><div>Situação</div></div>`;
+  const meta = c ? `<b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `<b>${numero}</b>`;
+  const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
+  const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
+  return `<li class="cand">
+    <div class="c-top">
+      <div><div class="c-name">${titulo(nome)}</div><div class="c-meta">${meta}</div></div>
+      <span class="pill ${cls}">${txt}</span>
+    </div>
+    <div class="c-nums">
+      <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small></div>
+      <div class="c-city">${titulo(nomeCidade())}: <b>${m ? fmt(m.vap) : '—'}</b></div>
+    </div>
+    <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
+    <div class="c-foot"><b>${c ? c.pvap + '%' : '—'}</b> dos votos válidos · ${pos}</div>
+  </li>`;
 }
 
 function ordenar(lista, uf) {
@@ -275,22 +292,26 @@ function render() {
   for (const cd of Object.keys(CARGOS)) {
     const cfg = CARGOS[cd];
     const r = ultimo[cd] || {};
+    const todos = [...cfg.principais, ...cfg.conhecimento];
+    const max = r.uf ? Math.max(0, ...todos.map(([, n]) => (r.uf.mapa[n] || {}).vap || 0)) : 0;
     const vagas = r.uf && r.uf.vagas ? `${r.uf.vagas} vagas em SP` : '';
     $('sec-' + cd).innerHTML = `
-      <div class="sec-head">
-        <h2>${cfg.titulo}<span>${vagas}</span></h2>
-        <button type="button" data-copiar="${cd}">Copiar para a planilha</button>
+      <div class="card-head">
+        <div><h2>${cfg.titulo}</h2><div class="vagas">${vagas}</div></div>
+        <button type="button" class="btn-ghost" data-copiar="${cd}">Copiar para a planilha</button>
       </div>
-      <div class="list">${cabecalho()}${ordenar(cfg.principais, r.uf).map(([n, num]) => linha(n, num, r.uf, r.mu)).join('')}</div>
-      <div class="sub-title">Apenas para conhecimento</div>
-      <div class="list info">${ordenar(cfg.conhecimento, r.uf).map(([n, num]) => linha(n, num, r.uf, r.mu)).join('')}</div>`;
+      <ul class="list">${ordenar(cfg.principais, r.uf).map(([n, num]) => cartao(n, num, r.uf, r.mu, max)).join('')}</ul>
+      <div class="extra">
+        <div class="extra-title">Apenas para conhecimento</div>
+        <ul class="list">${ordenar(cfg.conhecimento, r.uf).map(([n, num]) => cartao(n, num, r.uf, r.mu, max)).join('')}</ul>
+      </div>`;
   }
   const uf = (ultimo[6] || {}).uf, mu = (ultimo[6] || {}).mu;
-  const pUf = uf ? toNum(uf.pst) : 0, pMu = mu ? toNum(mu.pst) : 0;
-  $('pst-uf').textContent = uf ? uf.pst + '%' : '—';
-  $('pst-mu').textContent = mu ? mu.pst + '%' : '—';
-  $('bar-uf').style.width = pUf + '%';
-  $('bar-mu').style.width = pMu + '%';
+  const pct = (x) => x ? `${x.pst}<small>%</small>` : '—';
+  $('pst-uf').innerHTML = pct(uf);
+  $('pst-mu').innerHTML = pct(mu);
+  $('bar-uf').style.width = (uf ? toNum(uf.pst) : 0) + '%';
+  $('bar-mu').style.width = (mu ? toNum(mu.pst) : 0) + '%';
   $('city-name-m').textContent = titulo(nomeCidade());
 }
 
@@ -308,7 +329,7 @@ async function atualizar() {
   if (buscando) return;
   buscando = true;
   $('refresh').disabled = true;
-  $('stamp').textContent = 'Buscando dados do TSE…';
+  $('refresh').textContent = 'Atualizando…';
   const erros = [];
   await Promise.all(Object.keys(CARGOS).map(async (cd) => {
     const c = String(cd).padStart(4, '0');
@@ -323,12 +344,13 @@ async function atualizar() {
       muCidade: cidade,
     };
   }));
+  falhou = erros.length > 0;
   render();
   const uf = (ultimo[6] || {}).uf;
   const ban = $('banner');
-  if (erros.length) {
+  if (falhou) {
     ban.className = 'banner err';
-    ban.textContent = 'Não consegui buscar parte dos dados (' + erros[0] + '). Vou tentar de novo na próxima atualização. Verifique a conexão com a internet.';
+    ban.textContent = 'Não consegui buscar parte dos dados (' + erros[0] + '). Os números na tela são da última busca que deu certo. Vou tentar de novo em 60 segundos.';
     ban.hidden = false;
   } else if (DEMO) {
     ban.className = 'banner info';
@@ -336,21 +358,23 @@ async function atualizar() {
     ban.hidden = false;
   } else if (uf && !uf.temVotos) {
     ban.className = 'banner info';
-    ban.textContent = 'Apuração ainda não começou. Os votos aparecem depois que as urnas fecham, às 17h (horário de Brasília). A página atualiza sozinha.';
+    ban.textContent = 'A apuração ainda não começou. Os votos aparecem depois que as urnas fecham, às 17h (horário de Brasília). A página atualiza sozinha.';
     ban.hidden = false;
   } else {
     ban.hidden = true;
   }
   buscando = false;
   $('refresh').disabled = false;
+  $('refresh').textContent = 'Atualizar agora';
   contador = INTERVALO;
   tick();
 }
 
 function tick() {
   const uf = (ultimo[6] || {}).uf;
-  const tse = uf ? `Dados do TSE de ${uf.hora}` : 'Sem dados ainda';
-  $('stamp').textContent = `${tse} · próxima atualização em ${contador}s`;
+  $('live').className = 'live ' + (falhou ? 'err' : uf ? 'ok' : '');
+  const tse = uf ? `TSE às ${uf.hora}` : 'Sem dados ainda';
+  $('stamp').textContent = `${tse} · próxima em ${contador}s`;
 }
 
 async function carregarMunicipios() {
@@ -379,7 +403,7 @@ function textoPlanilha(cd) {
 
 async function copiar(cd, btn) {
   const texto = textoPlanilha(cd);
-  const ok = () => { btn.textContent = 'Copiado! Cole na coluna VOTOS TOTAL'; setTimeout(() => { btn.textContent = 'Copiar para a planilha'; }, 3000); };
+  const ok = () => { btn.textContent = 'Copiado! Cole em VOTOS TOTAL'; setTimeout(() => { btn.textContent = 'Copiar para a planilha'; }, 3000); };
   try { await navigator.clipboard.writeText(texto); ok(); return; } catch (e) {}
   const ta = document.createElement('textarea');
   ta.value = texto; document.body.appendChild(ta); ta.select();
