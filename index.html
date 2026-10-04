@@ -557,7 +557,8 @@ let avisos = lerJSON('apuracao-avisos' + SUF, []);   // [{ id, chave, nome, carg
 let contador = INTERVALO;
 let buscando = false;
 let pendente = false;      // pedido de atualização que chegou no meio de uma busca
-let falhou = false;
+let falhou = false;           // o TSE falhou em duas atualizações seguidas (aí mostra o aviso vermelho)
+let falhasSeguidas = 0, ultimaFalha = false, horaUltimoSucesso = '';
 
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => (n == null || isNaN(n)) ? '—' : n.toLocaleString('pt-BR');
@@ -566,14 +567,14 @@ const nomeCidade = () => titulo((municipios.find(m => m.cd === cidade) || {}).nm
 const titulo = (s) => String(s).toLowerCase().replace(/(^|\s|-)(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(Da|De|Do|Das|Dos|E)\b/g, w => w.toLowerCase());
 const pega = (chave) => { const d = dados[chave]; return d && (!chave.startsWith('mu') || d.cidade === cidade) ? d.res : null; };
 
-async function getJSON(path) {
-  // Tempo limite: uma conexão travada não pode congelar as atualizações seguintes.
-  // 'no-cache' revalida com o TSE: se o arquivo não mudou, nada é baixado de novo.
+// Uma tentativa, com tempo limite: uma conexão travada não pode congelar as atualizações seguintes.
+// 'no-cache' revalida com o TSE: se o arquivo não mudou, nada é baixado de novo.
+async function buscarUmaVez(path, limite) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 25000);
+  const timer = setTimeout(() => ctrl.abort(), limite);
   try {
     const r = await fetch(TSE + path, { cache: 'no-cache', signal: ctrl.signal });
-    if (!r.ok) throw new Error('TSE respondeu ' + r.status + ' para ' + path.split('/').pop());
+    if (!r.ok) { const e = new Error('TSE respondeu ' + r.status); e.status = r.status; throw e; }
     return await r.json();
   } catch (e) {
     if (e.name === 'AbortError') throw new Error('TSE demorou demais para responder');
@@ -581,6 +582,16 @@ async function getJSON(path) {
     throw e;
   } finally {
     clearTimeout(timer);
+  }
+}
+// No pico da apuração o TSE às vezes não responde uma consulta: tenta de novo antes de dar erro.
+async function getJSON(path) {
+  try {
+    return await buscarUmaVez(path, 15000);
+  } catch (e) {
+    if (e.status === 404) throw e;
+    await new Promise(r => setTimeout(r, 1500));
+    return buscarUmaVez(path, 20000);
   }
 }
 
@@ -612,6 +623,7 @@ function lerResultado(json) {
     pst: json.s ? json.s.pst : '0,00',
     secoes: json.s ? { feitas: toNum(json.s.st), total: toNum(json.s.ts) } : null,
     hora: json.ht || json.hg,
+    data: json.ht ? json.dt : json.dg,
     temVotos: todos.some(d => d.vap > 0),
     validos: toNum(v.vv), brancos: toNum(v.vb), nulos: toNum(v.tvn),
   };
@@ -1035,7 +1047,7 @@ function tickTV() {
   const uf = pega('uf-6') || pega('uf-3');
   $('tvm-dot').className = 'dot';
   $('tvm-dot').style.background = falhou ? 'var(--bad)' : uf ? 'var(--good-dot)' : 'var(--muted)';
-  $('tvm-stamp').textContent = falhou ? 'Sem resposta do TSE, tentando de novo' : `${uf ? 'TSE às ' + uf.hora : 'Sem dados ainda'} · atualiza em ${contador}s`;
+  $('tvm-stamp').textContent = falhou ? `TSE sem responder · últimos dados das ${horaUltimoSucesso || '—'} · tenta em ${contador}s` : `${uf ? 'TSE às ' + (horaTSE() || uf.hora) : 'Sem dados ainda'} · ${ultimaFalha ? 'parte não veio, tenta em ' : 'atualiza em '}${contador}s`;
 }
 function irTela(i) {
   const n = telasTV().length;
@@ -1168,9 +1180,9 @@ function preencherAndamento(id, res) {
 function mostrarAviso(erros) {
   const ban = $('banner');
   const uf = pega('uf-6') || pega('uf-3');
-  if (erros.length) {
+  if (falhou) {
     ban.className = 'banner err';
-    ban.textContent = 'Não consegui buscar parte dos dados (' + erros[0] + '). Os números na tela são da última busca que deu certo. Vou tentar de novo em 60 segundos.';
+    ban.textContent = 'O TSE não está respondendo bem agora (' + erros[0] + '). Os números na tela são da última busca que deu certo' + (horaUltimoSucesso ? ', às ' + horaUltimoSucesso : '') + '. A página continua tentando a cada minuto.';
   } else if (DEMO) {
     ban.className = 'banner info';
     ban.textContent = 'Modo demonstração: os votos mostrados são fictícios. Tire o #demo do endereço para ver os dados reais.';
@@ -1210,7 +1222,10 @@ async function atualizar() {
       erros.push(e.message);
     }
   }));
-  falhou = erros.length > 0;
+  ultimaFalha = erros.length > 0;
+  falhasSeguidas = ultimaFalha ? falhasSeguidas + 1 : 0;
+  falhou = falhasSeguidas >= 2;
+  if (!ultimaFalha) horaUltimoSucesso = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   render();
   mostrarAviso(erros);
   mostrarAvisosSituacao();
@@ -1223,11 +1238,23 @@ async function atualizar() {
   if (pendente) atualizar();
 }
 
+// Horário da atualização mais recente do TSE entre os arquivos carregados (o exterior usa o fuso local
+// de outro país, então fica de fora).
+function horaTSE() {
+  let melhor = null, chaveMelhor = '';
+  for (const [k, d] of Object.entries(dados)) {
+    if (k.startsWith('zz') || !d.res.hora) continue;
+    const [dd, mm, aa] = String(d.res.data || '').split('/');
+    const chave = (aa || '') + (mm || '') + (dd || '') + d.res.hora;
+    if (chave > chaveMelhor) { chaveMelhor = chave; melhor = d.res.hora; }
+  }
+  return melhor;
+}
 function tick() {
   tickTV();
   const uf = pega('uf-6') || pega('uf-3');
   $('live').className = 'live ' + (falhou ? 'err' : uf ? 'ok' : '');
-  $('stamp').textContent = `${uf ? 'TSE às ' + uf.hora : 'Sem dados ainda'} · próxima em ${contador}s`;
+  $('stamp').textContent = `${uf ? 'TSE às ' + (horaTSE() || uf.hora) : 'Sem dados ainda'} · ${ultimaFalha && !falhou ? 'parte não veio, tenta de novo em ' : 'próxima em '}${contador}s`;
 }
 
 async function carregarMunicipios() {
