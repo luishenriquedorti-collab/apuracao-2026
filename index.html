@@ -471,7 +471,19 @@ const CARGOS = {
 // Aliados que disputam em outro estado: não estão na urna de SP (sem votos em Nova Granada).
 const ALIADOS_FORA = [
   { chave: 'mg-6', uf: 'mg', ufNome: 'Minas Gerais', cargo: 6, titulo: 'Deputado Federal · MG', nome: 'THIAGO GANEM', numero: '2275' },
+  { chave: 'mg-6', uf: 'mg', ufNome: 'Minas Gerais', cargo: 6, titulo: 'Deputado Federal · MG', nome: 'NIKOLAS FERREIRA', numero: '2222' },
 ];
+// Aliados do mesmo estado e cargo dividem o mesmo arquivo do TSE e o mesmo cartão.
+function gruposFora() {
+  const m = new Map();
+  for (const x of ALIADOS_FORA) { if (!m.has(x.chave)) m.set(x.chave, []); m.get(x.chave).push(x); }
+  return [...m.values()];
+}
+// Dentro do grupo, do mais votado para o menos votado.
+function ordenarFora(grupo, res) {
+  const v = (x) => res && res.temVotos ? ((res.mapa[x.numero] || {}).vap || 0) : 0;
+  return [...grupo].sort((a, b) => v(b) - v(a));
+}
 const MAJORITARIOS = {
   1: { titulo: 'Presidente', ele: ELE_FED, sub: 'Presidente da República', vice: 'vice', geral: 'br-1', onde: 'Brasil', exterior: 'zz-1' },
   3: { titulo: 'Governador', ele: ELE_EST, sub: 'Governador de São Paulo', vice: 'vice', geral: 'uf-3', onde: 'SP' },
@@ -483,7 +495,7 @@ const ARQUIVOS = {
   dep: [
     { chave: 'uf-6', ele: ELE_EST, cargo: 6, nivel: 'uf' }, { chave: 'mu-6', ele: ELE_EST, cargo: 6, nivel: 'mu' },
     { chave: 'uf-7', ele: ELE_EST, cargo: 7, nivel: 'uf' }, { chave: 'mu-7', ele: ELE_EST, cargo: 7, nivel: 'mu' },
-    ...ALIADOS_FORA.map(x => ({ chave: x.chave, ele: ELE_EST, cargo: x.cargo, nivel: 'fora', uf: x.uf })),
+    ...gruposFora().map(([x]) => ({ chave: x.chave, ele: ELE_EST, cargo: x.cargo, nivel: 'fora', uf: x.uf })),
   ],
   maj: [
     { chave: 'br-1', ele: ELE_FED, cargo: 1, nivel: 'br' },
@@ -697,10 +709,10 @@ function cartaoAliadoFora(x, res) {
 }
 function renderAliadosFora() {
   $('sec-fora').hidden = ALIADOS_FORA.length === 0;
-  $('sec-fora').innerHTML = ALIADOS_FORA.map(x => {
-    const res = pega(x.chave);
-    return `<div class="card-head"><div><h2>${x.titulo}</h2><div class="vagas">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''} · não está na urna de SP</div></div></div>
-      <ul class="list">${cartaoAliadoFora(x, res)}</ul>`;
+  $('sec-fora').innerHTML = gruposFora().map(grupo => {
+    const x = grupo[0], res = pega(x.chave);
+    return `<div class="card-head"><div><h2>${x.titulo}</h2><div class="vagas">${grupo.length > 1 ? 'Aliados' : 'Aliado'} em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''} · não estão na urna de SP</div></div></div>
+      <ul class="list">${ordenarFora(grupo, res).map(y => cartaoAliadoFora(y, res)).join('')}</ul>`;
   }).join('');
 }
 
@@ -815,8 +827,11 @@ function renderFavoritos() {
     const max = uf ? Math.max(0, ...todos.map(([, n]) => (uf.mapa[n] || {}).vap || 0)) : 0;
     grupos.push([cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '', ordenar(cd, lista, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')]);
   }
-  for (const x of ALIADOS_FORA) {
-    if (ehFav(x.chave, x.numero)) grupos.push([x.titulo, 'Aliado em ' + x.ufNome, cartaoAliadoFora(x, pega(x.chave))]);
+  for (const grupo of gruposFora()) {
+    const marcados = grupo.filter(x => ehFav(x.chave, x.numero));
+    if (!marcados.length) continue;
+    const res = pega(grupo[0].chave);
+    grupos.push([grupo[0].titulo, 'Aliados em ' + grupo[0].ufNome, ordenarFora(marcados, res).map(x => cartaoAliadoFora(x, res)).join('')]);
   }
   for (const cd of Object.keys(MAJORITARIOS)) {
     const cfg = MAJORITARIOS[cd], mu = pega('mu-' + cd);
@@ -872,18 +887,22 @@ function cartaoTVDeputados(cd) {
     ${cfg.conhecimento.length ? `<div class="tvm-sep">Apenas para conhecimento</div><div class="tvm-rows">${ordenar(cd, cfg.conhecimento, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div>` : ''}
   </section>`;
 }
-function cartaoTVFora(x) {
-  const res = pega(x.chave), c = res && res.mapa[x.numero];
-  const av = avisoDe(x.chave, x.numero);
+function cartaoTVFora(grupo) {
+  const x0 = grupo[0], res = pega(x0.chave);
   return `<section class="tvm-card">
-    <div class="tvm-card-head tvm-grid-dep"><div><h3>${x.titulo}</h3><div class="sub">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''}</div></div><div class="tvm-colh">${x.ufNome}</div><div class="tvm-colh">Apuração em ${x.uf.toUpperCase()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>
-    <div class="tvm-rows"><div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
+    <div class="tvm-card-head tvm-grid-dep"><div><h3>${x0.titulo}</h3><div class="sub">${grupo.length > 1 ? 'Aliados' : 'Aliado'} em ${x0.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''}</div></div><div class="tvm-colh">${x0.ufNome}</div><div class="tvm-colh">Apuração em ${x0.uf.toUpperCase()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>
+    <div class="tvm-rows">${ordenarFora(grupo, res).map(x => linhaTVFora(x, res)).join('')}</div>
+  </section>`;
+}
+function linhaTVFora(x, res) {
+  const c = res && res.mapa[x.numero];
+  const av = avisoDe(x.chave, x.numero);
+  return `<div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
       <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
       <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
       <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
       <div class="tvm-sit">${situTV(c, res)}</div>
-    </div></div>
-  </section>`;
+    </div>`;
 }
 function cartaoTVMajoritario(cd) {
   const cfg = MAJORITARIOS[cd], mu = pega('mu-' + cd), g = pega(cfg.geral);
@@ -922,7 +941,7 @@ function htmlTVFavoritos() {
     const lista = [...cfg.principais, ...cfg.conhecimento].filter(([, n]) => ehFav(cd, n));
     if (lista.length) partes.push(`<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}<div class="tvm-rows">${ordenar(cd, lista, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div></section>`);
   }
-  for (const x of ALIADOS_FORA) if (ehFav(x.chave, x.numero)) partes.push(cartaoTVFora(x));
+  for (const grupo of gruposFora()) { const marcados = grupo.filter(x => ehFav(x.chave, x.numero)); if (marcados.length) partes.push(cartaoTVFora(marcados)); }
   for (const cd of Object.keys(MAJORITARIOS)) {
     const marcados = [...favoritos].filter(k => k.startsWith(cd + '-')).map(k => k.slice(cd.length + 1));
     if (!marcados.length) continue;
@@ -946,7 +965,7 @@ function renderTV() {
     medidorTV('Exterior', pega('zz-1')),
     medidorTV('São Paulo', pega('uf-6') || pega('uf-3')),
     medidorTV(nomeCidade(), pega('mu-6') || pega('mu-3') || pega('mu-1')),
-    ...ALIADOS_FORA.map(x => medidorTV(x.ufNome, pega(x.chave))),
+    ...gruposFora().map(([x]) => medidorTV(x.ufNome, pega(x.chave))),
   ].join('');
   // A barrinha mostra quanto falta para trocar (só quando está alternando sozinha); não reinicia a cada atualização.
   const passou = Math.min((Date.now() - inicioTela) / 1000, TEMPO_TELA);
@@ -957,7 +976,7 @@ function renderTV() {
   const body = $('tvm-body');
   body.className = 'tvm-body ' + tela;
   body.innerHTML = tela === 'dep'
-    ? `<div class="tvm-col">${cartaoTVDeputados(6)}</div><div class="tvm-col">${cartaoTVDeputados(7)}${ALIADOS_FORA.map(cartaoTVFora).join('')}</div>`
+    ? `<div class="tvm-col">${cartaoTVDeputados(6)}</div><div class="tvm-col">${cartaoTVDeputados(7)}${gruposFora().map(cartaoTVFora).join('')}</div>`
     : tela === 'maj' ? Object.keys(MAJORITARIOS).map(cartaoTVMajoritario).join('') : htmlTVFavoritos();
   tickTV();
   ajustarTV();
@@ -1145,7 +1164,7 @@ async function atualizar() {
       if (a.nivel !== 'mu' || cid === cidade) {
         calcularSubida(res, pega(a.chave));
         if (a.nivel === 'uf' && CARGOS[a.cargo]) conferirSituacoes(a.cargo, res);
-        if (a.nivel === 'fora') { const x = ALIADOS_FORA.find(y => y.chave === a.chave); conferirSituacoes(x.chave, res, [[x.nome, x.numero]], x.titulo); }
+        if (a.nivel === 'fora') { const grupo = ALIADOS_FORA.filter(y => y.chave === a.chave); conferirSituacoes(a.chave, res, grupo.map(y => [y.nome, y.numero]), grupo[0].titulo); }
         dados[a.chave] = { res, cidade: cid, em: Date.now() };
       }
     } catch (e) {
