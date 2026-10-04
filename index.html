@@ -1036,8 +1036,8 @@ function renderTV() {
   $('tvm-meters').innerHTML = [
     medidorTV('Brasil', pega('br-1')),
     medidorTV('Exterior', pega('zz-1')),
-    medidorTV('São Paulo', pega('uf-6') || pega('uf-3')),
-    medidorTV(nomeCidade(), pega('mu-6') || pega('mu-3') || pega('mu-1')),
+    medidorTV('São Paulo', maisAvancado(['uf-3', 'uf-5', 'uf-6', 'uf-7'])),
+    medidorTV(nomeCidade(), maisAvancado(['mu-1', 'mu-3', 'mu-5', 'mu-6', 'mu-7'])),
     ...gruposFora().map(([x]) => medidorTV(x.ufNome, pega(x.chave))),
   ].join('');
   // A barrinha mostra quanto falta para trocar (só quando está alternando sozinha); não reinicia a cada atualização.
@@ -1122,8 +1122,9 @@ function render() {
   if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else renderFavoritos();
 
   const br = aba !== 'dep' ? pega('br-1') : null;
-  const uf = pega(aba === 'dep' ? 'uf-6' : 'uf-3') || pega('uf-6') || pega('uf-3');
-  const mu = pega(aba === 'dep' ? 'mu-6' : 'mu-3') || pega('mu-6') || pega('mu-3') || pega('mu-1');
+  // Cada cargo é totalizado no seu ritmo: o quadro mostra o mais adiantado entre os cargos da aba.
+  const uf = maisAvancado(aba === 'dep' ? ['uf-6', 'uf-7'] : ['uf-3', 'uf-5', 'uf-6', 'uf-7']);
+  const mu = maisAvancado(aba === 'dep' ? ['mu-6', 'mu-7'] : ['mu-1', 'mu-3', 'mu-5', 'mu-6', 'mu-7']);
   $('prog-br').hidden = aba === 'dep';
   $('prog-zz').hidden = aba === 'dep';
   $('progress').classList.toggle('quatro', aba !== 'dep');
@@ -1262,6 +1263,9 @@ async function atualizar() {
 
 // Horário da atualização mais recente do TSE entre os arquivos carregados (o exterior usa o fuso local
 // de outro país, então fica de fora).
+function maisAvancado(chaves) {
+  return chaves.map(pega).filter(Boolean).sort((a, b) => toNum(b.pst) - toNum(a.pst))[0] || null;
+}
 function horaTSE() {
   let melhor = null, chaveMelhor = '';
   for (const [k, d] of Object.entries(dados)) {
