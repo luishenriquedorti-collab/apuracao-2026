@@ -198,6 +198,90 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .totais b { color: var(--ink-2); font-weight: 700; }
 
 footer { font-size: 12.5px; color: var(--muted); max-width: 70ch; }
+
+.btn-tv { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; background: var(--surface); border-color: var(--line); color: var(--ink-2); }
+.btn-tv:hover { border-color: var(--bar); background: var(--accent-soft); color: var(--accent-ink); }
+@media (max-width: 760px) { .btn-tv { display: none; } }
+.btn-tv svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== Modo TV: tela cheia, sem rolagem, tamanhos em rem que acompanham a largura da tela ===== */
+html.tv { font-size: calc(clamp(11px, 0.94vw, 40px) * var(--tv-escala, 1)); overflow: hidden; }
+html.tv body { overflow: hidden; }
+html.tv .wrap { display: none; }
+.tvm { display: none; }
+html.tv .tvm { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 1rem; height: 100vh; height: 100dvh; padding: 1.4rem 2rem 1.6rem; overflow: hidden; }
+.tvm-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2rem; align-items: center; }
+.tvm-brand .eyebrow { font-size: .8rem; }
+.tvm-title { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.tvm-meters { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .8rem; }
+.tvm-meter { background: var(--surface); border-radius: 1rem; box-shadow: var(--shadow); padding: .65rem 1rem .75rem; display: grid; gap: .35rem; min-width: 0; }
+.tvm-meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; }
+.tvm-meter-label { font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-meter-val { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.tvm-meter-val small { font-size: .8rem; color: var(--muted); }
+.tvm-meter .track { height: .4rem; border-radius: .2rem; }
+.tvm-meter-foot { font-size: .7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-clock { text-align: right; }
+.tvm-hora { font-size: 2.3rem; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.tvm-stamp { display: inline-flex; align-items: center; gap: .45rem; margin-top: .35rem; font-size: .8rem; color: var(--ink-2); }
+.tvm-stamp .dot { width: .55rem; height: .55rem; }
+.tvm-bar { display: flex; align-items: center; gap: 1rem; min-height: 2.6rem; }
+.tvm-telas { display: flex; gap: .5rem; flex: none; }
+.tvm-tela { position: relative; overflow: hidden; font-size: .95rem; font-weight: 800; padding: .5rem 1.1rem; min-height: 0; border-radius: .8rem; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
+.tvm-tela.ativa { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.tvm-tela .tempo { position: absolute; left: 0; bottom: 0; height: .2rem; width: 0; background: rgba(255, 255, 255, .75); }
+.tvm-tela.ativa .tempo { animation: tvtempo var(--tv-tempo, 25s) linear forwards; }
+@keyframes tvtempo { from { width: 0; } to { width: 100%; } }
+.tvm-aviso { flex: 1; min-width: 0; display: flex; gap: .6rem; overflow: hidden; }
+.tvm-aviso .aviso { padding: .45rem .9rem; border-radius: .8rem; gap: .6rem; min-width: 0; flex: 0 1 auto; }
+.tvm-aviso .aviso-txt { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-aviso .aviso-dot { width: .6rem; height: .6rem; }
+.tvm-acoes { display: flex; gap: .5rem; flex: none; opacity: 0; transition: opacity .3s; }
+html.tv.mexeu .tvm-acoes, .tvm-acoes:focus-within { opacity: 1; }
+.tvm-acoes button { font-size: .8rem; min-height: 0; padding: .4rem .8rem; border-radius: .6rem; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
+html.tv:not(.mexeu) { cursor: none; }
+
+.tvm-body { display: grid; gap: 1.2rem; min-height: 0; }
+.tvm-body.dep { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); }
+.tvm-body.maj { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.tvm-col { display: grid; gap: 1.2rem; align-content: start; min-height: 0; }
+.tvm-card { background: var(--surface); border-radius: 1.2rem; box-shadow: var(--shadow); padding: .9rem 1.3rem .6rem; min-width: 0; min-height: 0; overflow: hidden; }
+.tvm-card-head { display: grid; align-items: end; gap: 0 .8rem; padding-bottom: .45rem; border-bottom: 1px solid var(--line); }
+.tvm-card-head h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
+.tvm-card-head .sub { font-size: .75rem; color: var(--muted); font-weight: 600; }
+.tvm-colh { font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.tvm-grid-dep { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.15fr) minmax(0, .95fr) 8.6rem; }
+.tvm-row { display: grid; align-items: center; gap: 0 .8rem; padding: .42rem 0; border-top: 1px solid var(--line); }
+.tvm-rows .tvm-row:first-child { border-top: 0; }
+.tvm-row.fav { background: var(--fav-bg); margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; }
+.tvm-row.mudou { margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; box-shadow: inset 0 0 0 .15rem var(--good-dot); }
+.tvm-row.mudou.warn { box-shadow: inset 0 0 0 .15rem var(--warn-dot); }
+.tvm-row.fav + .tvm-row, .tvm-row.mudou + .tvm-row { border-top-color: transparent; }
+.tvm-nome { min-width: 0; }
+.tvm-nome b { display: block; font-size: 1.12rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-nome span { display: block; font-size: .75rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-num { min-width: 0; }
+.tvm-num .v { display: flex; align-items: baseline; gap: .45rem; font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; white-space: nowrap; }
+.tvm-num .v .up { font-size: .72rem; padding: .05rem .45rem; margin: 0; vertical-align: 0; letter-spacing: 0; }
+.tvm-num small { display: block; font-size: .72rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvm-num small b { color: var(--ink-2); }
+.tvm-sit { justify-self: end; }
+.tvm-sit .pill { font-size: .75rem; padding: .25rem .65rem; gap: .35rem; }
+.tvm-sit .pill::before { width: .4rem; height: .4rem; }
+.tvm-sep { padding: .5rem 0 .2rem; font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-top: 1px dashed var(--line); }
+.tvm-grid-maj { grid-template-columns: 2.4rem minmax(0, 1fr) minmax(0, 7.2rem) minmax(0, 7.6rem); }
+.tvm-rank { display: inline-grid; place-items: center; height: 1.6rem; border-radius: 99rem; font-size: .78rem; font-weight: 800; background: var(--neutral-bg); color: var(--ink-2); }
+.tvm-row.lead .tvm-rank { background: var(--accent); color: var(--surface); }
+.tvm-num.dir { text-align: right; }
+.tvm-num.dir .v { justify-content: flex-end; }
+.tvm-geral .v { font-size: 1rem; color: var(--ink-2); }
+.tvm-row .pill.mini { font-size: .62rem; padding: .05rem .45rem; margin-top: .1rem; }
+.tvm-row .pill.mini::before { display: none; }
+.tvm-vazio { padding: 1rem 0; color: var(--muted); font-size: .9rem; }
+.tvm-totais { display: flex; gap: 1.2rem; font-size: .72rem; color: var(--muted); padding: .45rem 0 .2rem; border-top: 1px dashed var(--line); }
+.tvm-totais b { color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .tvm-tela.ativa .tempo { animation: none; width: 100%; } }
+
 footer a { color: var(--accent-ink); }
 
 @media (max-width: 560px) {
@@ -268,6 +352,7 @@ footer a { color: var(--accent-ink); }
   <div class="controls">
     <div class="field"><label for="city">Cidade</label><select id="city"><option>Carregando…</option></select></div>
     <button id="refresh" class="btn-refresh" type="button" title="Buscar agora (a página também atualiza sozinha a cada 60 segundos)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg><span>Atualizar</span></button>
+    <button id="btn-tv" class="btn-tv" type="button" title="Tela cheia para TV: alterna sozinha entre deputados e Presidente/Governo/Senado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
   </div>
   <div id="banner" class="banner" hidden></div>
   <div id="avisos" class="avisos" aria-live="polite" hidden></div>
@@ -290,6 +375,20 @@ footer a { color: var(--accent-ink); }
     A comparação com 2022 mostra os votos do 1º turno de 2022 em Nova Granada (Dados Abertos do TSE) e aparece quando Nova Granada está selecionada.
     Na aba de deputados, a posição é a colocação do candidato entre todos do mesmo cargo em SP. A eleição de deputado depende do quociente partidário, então a situação oficial (Eleito, Suplente) só aparece quando o TSE divulga.
   </footer>
+</div>
+
+<div class="tvm" id="tvm" aria-live="polite">
+  <div class="tvm-head">
+    <div class="tvm-brand"><div class="eyebrow">Eleições 2026 · 1º turno · São Paulo</div><div class="tvm-title">Apuração ao vivo</div></div>
+    <div class="tvm-meters" id="tvm-meters"></div>
+    <div class="tvm-clock"><div class="tvm-hora" id="tvm-hora">--:--</div><div class="tvm-stamp"><span class="dot" id="tvm-dot"></span><span id="tvm-stamp">Buscando dados do TSE…</span></div></div>
+  </div>
+  <div class="tvm-bar">
+    <div class="tvm-telas" id="tvm-telas"></div>
+    <div class="tvm-aviso" id="tvm-aviso"></div>
+    <div class="tvm-acoes"><button type="button" id="tvm-full">Tela cheia</button><button type="button" id="tvm-sair">Sair do modo TV (Esc)</button></div>
+  </div>
+  <div class="tvm-body" id="tvm-body"></div>
 </div>
 
 <script>
@@ -348,7 +447,7 @@ const ARQUIVOS = {
 };
 
 // ===== Estado =====
-const DEMO = location.hash === '#demo';
+const DEMO = location.hash.includes('demo');
 const guardado = (k, padrao) => { try { return localStorage.getItem(k) || padrao; } catch (e) { return padrao; } };
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 let cidade = guardado('apuracao-cidade', CIDADE_PADRAO);
@@ -626,7 +725,148 @@ function renderMajoritarios() {
 }
 
 // ===== Tela =====
+// ===== Modo TV =====
+let modoTV = false, telaTV = 0, timerTela = null, wakeLock = null, timerMouse = null;
+const TELAS_TV = [{ id: 'dep', nome: 'Nossos deputados' }, { id: 'maj', nome: 'Presidente, Governo e Senado' }];
+const TEMPO_TELA = 25;
+
+function situTV(c, res) {
+  const [txt, cls] = res ? situacao(c, res.temVotos) : ['Carregando…', ''];
+  return `<span class="pill ${cls}">${txt}</span>`;
+}
+function linhaTVDeputado(cargo, nome, numero, uf, mu) {
+  const c = uf && uf.mapa[numero], m = mu && mu.mapa[numero];
+  const av = avisoDe(cargo, numero);
+  const v22 = cidade === CIDADE_PADRAO ? VOTOS_2022_NG[cargo + '-' + numero] : null;
+  const det22 = cidade !== CIDADE_PADRAO ? '' : v22 ? ` · 2022: <b>${fmt(v22[0])}</b>` : ' · 2022: —';
+  return `<div class="tvm-row tvm-grid-dep${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+    <div class="tvm-nome"><b>${titulo(nome)}</b><span>nº ${numero}${c ? ' · ' + c.partido : ''}</span></div>
+    <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(uf, numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && uf.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
+    <div class="tvm-num"><div class="v">${m ? fmt(m.vap) : '—'}${selo(mu, numero)}</div><small>${m ? '<b>' + m.pvap + '%</b>' : ''}${det22}</small></div>
+    <div class="tvm-sit">${situTV(c, uf)}</div>
+  </div>`;
+}
+function cabecalhoTV(titulo_, sub) {
+  return `<div class="tvm-card-head tvm-grid-dep"><div><h3>${titulo_}</h3><div class="sub">${sub}</div></div><div class="tvm-colh">São Paulo</div><div class="tvm-colh">${nomeCidade()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>`;
+}
+function cartaoTVDeputados(cd) {
+  const cfg = CARGOS[cd], uf = pega('uf-' + cd), mu = pega('mu-' + cd);
+  return `<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}
+    <div class="tvm-rows">${ordenar(cd, cfg.principais, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div>
+    ${cfg.conhecimento.length ? `<div class="tvm-sep">Apenas para conhecimento</div><div class="tvm-rows">${ordenar(cd, cfg.conhecimento, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div>` : ''}
+  </section>`;
+}
+function cartaoTVFora(x) {
+  const res = pega(x.chave), c = res && res.mapa[x.numero];
+  const av = avisoDe(x.chave, x.numero);
+  return `<section class="tvm-card">
+    <div class="tvm-card-head tvm-grid-dep"><div><h3>${x.titulo}</h3><div class="sub">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''}</div></div><div class="tvm-colh">${x.ufNome}</div><div class="tvm-colh">Apuração em ${x.uf.toUpperCase()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>
+    <div class="tvm-rows"><div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+      <div class="tvm-nome"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>
+      <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
+      <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
+      <div class="tvm-sit">${situTV(c, res)}</div>
+    </div></div>
+  </section>`;
+}
+function cartaoTVMajoritario(cd) {
+  const cfg = MAJORITARIOS[cd], mu = pega('mu-' + cd), g = pega(cfg.geral);
+  const onde = cfg.onde === 'SP' ? 'São Paulo' : 'Brasil';
+  let corpo = '<div class="tvm-vazio">Carregando…</div>';
+  if (mu) {
+    const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
+    corpo = `<div class="tvm-rows">${lista.map(c => {
+      const gc = g && g.mapa[c.n];
+      const sg = seloGeral(g, c.n).replace('class="pill', 'class="pill mini');
+      return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
+        <span class="tvm-rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
+        <div class="tvm-nome"><b>${titulo(c.nmu)}</b><span>nº ${c.n} · ${c.partido}</span></div>
+        <div class="tvm-num dir"><div class="v">${fmt(c.vap)}</div><small><b>${c.pvap}%</b>${selo(mu, c.n) ? ' · ' + selo(mu, c.n).replace(/<[^>]+>/g, '') : ''}</small></div>
+        <div class="tvm-num dir tvm-geral"><div class="v">${gc ? gc.pvap + '%' : '—'}</div><small>${gc ? fmt(gc.vap) : ''}</small>${sg}</div>
+      </div>`;
+    }).join('')}</div>
+    <div class="tvm-totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
+  }
+  return `<section class="tvm-card">
+    <div class="tvm-card-head tvm-grid-maj"><div style="grid-column: 1 / 3"><h3>${cfg.titulo}</h3><div class="sub">${cfg.sub}</div></div><div class="tvm-colh" style="text-align:right">${nomeCidade()}</div><div class="tvm-colh" style="text-align:right">${onde}</div></div>
+    ${corpo}
+  </section>`;
+}
+function medidorTV(rotulo, res) {
+  const pst = res ? toNum(res.pst) : 0;
+  let foot = '—';
+  if (res && res.secoes && res.secoes.total) foot = res.secoes.feitas >= res.secoes.total ? 'Apuração concluída' : `Faltam ${(100 - pst).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% · ${fmt(res.secoes.feitas)} de ${fmt(res.secoes.total)} urnas`;
+  return `<div class="tvm-meter"><div class="tvm-meter-top"><span class="tvm-meter-label">${rotulo}</span><span class="tvm-meter-val">${res ? res.pst : '—'}<small>%</small></span></div><div class="track"><div class="fill" style="width:${pst}%"></div></div><div class="tvm-meter-foot">${foot}</div></div>`;
+}
+function renderTV() {
+  const tela = TELAS_TV[telaTV].id;
+  $('tvm-meters').innerHTML = [
+    medidorTV('Brasil', pega('br-1')),
+    medidorTV('São Paulo', pega('uf-6') || pega('uf-3')),
+    medidorTV(nomeCidade(), pega('mu-6') || pega('mu-3') || pega('mu-1')),
+    ...ALIADOS_FORA.map(x => medidorTV(x.ufNome, pega(x.chave))),
+  ].join('');
+  $('tvm-telas').innerHTML = TELAS_TV.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo"></span></button>`).join('');
+  $('tvm-aviso').innerHTML = avisos.slice(0, 2).map(a => `<div class="aviso ${a.tipo}"><span class="aviso-dot"></span><div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b> · ${a.cargo}</div></div>`).join('');
+  const body = $('tvm-body');
+  body.className = 'tvm-body ' + tela;
+  body.innerHTML = tela === 'dep'
+    ? `<div class="tvm-col">${cartaoTVDeputados(6)}</div><div class="tvm-col">${cartaoTVDeputados(7)}${ALIADOS_FORA.map(cartaoTVFora).join('')}</div>`
+    : Object.keys(MAJORITARIOS).map(cartaoTVMajoritario).join('');
+  tickTV();
+  ajustarTV();
+}
+// Encolhe tudo um pouco se não couber na tela (TVs com outra proporção).
+function ajustarTV() {
+  const raiz = document.documentElement;
+  let escala = 1;
+  raiz.style.setProperty('--tv-escala', escala);
+  const cabe = () => [...document.querySelectorAll('.tvm-card')].every(c => c.scrollHeight <= c.clientHeight + 1) && $('tvm').scrollHeight <= innerHeight + 1;
+  for (let i = 0; i < 12 && !cabe(); i++) { escala -= 0.04; raiz.style.setProperty('--tv-escala', escala.toFixed(2)); }
+}
+function tickTV() {
+  if (!modoTV) return;
+  const agora = new Date();
+  $('tvm-hora').textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const uf = pega('uf-6') || pega('uf-3');
+  $('tvm-dot').className = 'dot';
+  $('tvm-dot').style.background = falhou ? 'var(--bad)' : uf ? 'var(--good-dot)' : 'var(--muted)';
+  $('tvm-stamp').textContent = falhou ? 'Sem resposta do TSE, tentando de novo' : `${uf ? 'TSE às ' + uf.hora : 'Sem dados ainda'} · atualiza em ${contador}s`;
+}
+function irTela(i) {
+  telaTV = (i + TELAS_TV.length) % TELAS_TV.length;
+  clearInterval(timerTela);
+  timerTela = setInterval(() => irTela(telaTV + 1), TEMPO_TELA * 1000);
+  renderTV();
+}
+async function pedirTelaLigada() {
+  try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {}
+}
+async function telaCheia() {
+  try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch (e) {}
+}
+function entrarTV(comTelaCheia) {
+  modoTV = true;
+  document.documentElement.classList.add('tv');
+  document.documentElement.style.setProperty('--tv-tempo', TEMPO_TELA + 's');
+  if (comTelaCheia) telaCheia();
+  pedirTelaLigada();
+  irTela(0);
+  atualizar();
+}
+function sairTV() {
+  if (!modoTV) return;
+  modoTV = false;
+  clearInterval(timerTela);
+  document.documentElement.classList.remove('tv', 'mexeu');
+  document.documentElement.style.removeProperty('--tv-escala');
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  try { wakeLock && wakeLock.release(); } catch (e) {}
+  render();
+}
+
 function render() {
+  if (modoTV) { renderTV(); return; }
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', String(b.dataset.aba === aba));
   $('painel-dep').hidden = aba !== 'dep';
   $('painel-maj').hidden = aba !== 'maj';
@@ -738,7 +978,7 @@ async function atualizar() {
   const cid = cidade;
   ciclo += 1;
   // Na aba de Presidente/Governo/Senado, confere os deputados a cada 3 atualizações (para os avisos de situação).
-  const lista = ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel !== 'mu') : []);
+  const lista = modoTV ? ARQUIVOS.dep.concat(ARQUIVOS.maj) : ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel !== 'mu') : []);
   await Promise.all(lista.map(async (a) => {
     try {
       let res = lerResultado(await getJSON(caminho(a)));
@@ -766,6 +1006,7 @@ async function atualizar() {
 }
 
 function tick() {
+  tickTV();
   const uf = pega('uf-6') || pega('uf-3');
   $('live').className = 'live ' + (falhou ? 'err' : uf ? 'ok' : '');
   $('stamp').textContent = `${uf ? 'TSE às ' + uf.hora : 'Sem dados ainda'} · próxima em ${contador}s`;
@@ -844,6 +1085,30 @@ document.querySelector('.tabs').addEventListener('keydown', (ev) => {
   document.querySelector(`.tab[data-aba="${aba}"]`).focus();
 });
 $('refresh').addEventListener('click', atualizar);
+$('btn-tv').addEventListener('click', () => entrarTV(true));
+$('tvm-full').addEventListener('click', telaCheia);
+$('tvm-sair').addEventListener('click', sairTV);
+$('tvm-telas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-tela]'); if (b) irTela(Number(b.dataset.tela)); });
+document.addEventListener('keydown', (ev) => {
+  if (!modoTV) return;
+  if (ev.key === 'Escape') sairTV();
+  if (ev.key === 'ArrowRight') irTela(telaTV + 1);
+  if (ev.key === 'ArrowLeft') irTela(telaTV - 1);
+});
+// Saiu da tela cheia pelo Esc do navegador: volta ao modo normal.
+let estavaTelaCheia = false;
+document.addEventListener('fullscreenchange', () => {
+  if (document.fullscreenElement) estavaTelaCheia = true;
+  else if (estavaTelaCheia) { estavaTelaCheia = false; sairTV(); }
+});
+document.addEventListener('mousemove', () => {
+  if (!modoTV) return;
+  document.documentElement.classList.add('mexeu');
+  clearTimeout(timerMouse);
+  timerMouse = setTimeout(() => document.documentElement.classList.remove('mexeu'), 3000);
+});
+window.addEventListener('resize', () => { if (modoTV) ajustarTV(); });
+document.addEventListener('visibilitychange', () => { if (modoTV && document.visibilityState === 'visible') pedirTelaLigada(); });
 $('city').addEventListener('change', (ev) => {
   cidade = ev.target.value;
   guardar('apuracao-cidade', cidade);
@@ -863,6 +1128,8 @@ setInterval(() => {
 
 render();
 mostrarAvisosSituacao();
+// Abrir o link com #tv no fim já entra no modo TV (depois é só clicar em Tela cheia).
+if (location.hash.includes('tv')) entrarTV(false);
 carregarMunicipios().then(() => { render(); atualizar(); });
 </script>
 </body>
