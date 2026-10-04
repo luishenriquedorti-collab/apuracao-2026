@@ -30,6 +30,7 @@
   --bad: #a33b3b;   --bad-bg: #fcecec;
   --neutral: #6b7486; --neutral-bg: #f0f2f6;
   --fav: #2a78d6; --fav-bg: #eef5fe;
+  --tile: #f5f7fb;
   --shadow: 0 1px 2px rgba(28, 36, 51, .04), 0 6px 24px rgba(28, 36, 51, .06);
   --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: light;
@@ -82,6 +83,9 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
 .prog-label small { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 .prog-value { font-size: 26px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; line-height: 1.15; }
 .prog-value small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+.prog-foot { font-size: 12px; color: var(--muted); font-weight: 500; }
+.prog-foot b { color: var(--ink-2); font-weight: 700; }
+.progress.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .track { height: 8px; border-radius: 4px; background: var(--bar-track); overflow: hidden; }
 .fill { height: 100%; width: 0; border-radius: 4px; background: var(--accent); transition: width .8s ease; }
 
@@ -107,7 +111,6 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); o
 
 /* Quanto subiu desde a atualização anterior do TSE */
 .up { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0; color: var(--good); background: var(--good-bg); border-radius: 999px; padding: 1px 8px; margin-left: 8px; vertical-align: 3px; white-space: nowrap; }
-.m-right .up { margin-left: 0; vertical-align: 0; }
 
 /* Avisos de mudança de situação */
 .avisos { display: grid; gap: 8px; }
@@ -143,17 +146,20 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .c-name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
 .c-meta { font-size: 12.5px; color: var(--muted); font-weight: 500; }
 .c-meta b { color: var(--ink-2); font-weight: 700; }
-.c-nums { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; }
-.c-votes { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
-.c-votes small { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 4px; }
-.c-city { font-size: 14px; color: var(--ink-2); }
-.c-city b { color: var(--ink); font-weight: 800; font-size: 16px; }
-.c-city { display: grid; gap: 2px; }
+/* Blocos de números: cada lugar (São Paulo, Nova Granada, Brasil) com o seu rótulo */
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tile { background: var(--tile); border-radius: 12px; padding: 10px 12px 11px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.fav .tile, .mudou .tile { background: var(--surface); }
+.tile-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile-num { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+.tile-num .up { margin-left: 0; vertical-align: 0; }
+.tile .c-bar { height: 5px; margin-block: 2px; }
+.tile-foot { display: grid; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 500; }
+.tile-foot b { color: var(--ink-2); font-weight: 700; }
+.tile-foot .v22, .tile-foot .v22 b { font-size: 12px; }
 .v22 { font-size: 12.5px; color: var(--muted); font-weight: 500; }
 .v22 b { color: var(--ink-2); font-weight: 700; font-size: 12.5px; }
 .ano { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; line-height: 1.5; padding: 0 6px; border-radius: 6px; background: var(--neutral-bg); color: var(--ink-2); margin-right: 6px; vertical-align: 1px; }
-.c-foot { font-size: 12.5px; color: var(--muted); font-weight: 500; }
-.c-foot b { color: var(--ink-2); font-weight: 700; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: var(--neutral-bg); color: var(--neutral); flex: none; }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .6; }
 .pill.good { background: var(--good-bg); color: var(--good); }
@@ -179,22 +185,15 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .extra .c-votes { font-size: 18px; }
 
 /* Presidente, Governo e Senado */
-.m-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.m-row { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
 .list .m-row:first-child { border-top: 0; }
-.rank { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--neutral-bg); color: var(--ink-2); }
+.rank { display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 6px; border-radius: 999px; font-size: 12px; font-weight: 800; background: var(--neutral-bg); color: var(--ink-2); flex: none; }
+.m-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .m-row.lead .rank { background: var(--accent); color: var(--surface); }
 .m-row.lead .c-bar span { background: var(--accent); }
-.m-main { display: grid; gap: 6px; min-width: 0; }
-.m-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.m-right { display: flex; align-items: center; gap: 2px; flex: none; }
-.m-name { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
-.m-votes { font-weight: 800; font-size: 18px; letter-spacing: -.01em; white-space: nowrap; }
-.m-pct { white-space: nowrap; }
-.m-sub { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-size: 12.5px; color: var(--muted); font-weight: 500; }
-.m-sub span:first-child { min-width: 0; overflow-wrap: anywhere; }
-.m-sub b { color: var(--ink-2); font-weight: 700; white-space: nowrap; }
-.m-geral { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--ink-2); font-weight: 500; }
-.m-geral b { color: var(--ink); font-weight: 800; }
+.m-row .c-meta { margin-top: 2px; }
+.m-name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
+.m-id { min-width: 0; }
 .totais { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); font-weight: 500; padding: 12px 0 14px; border-top: 1px dashed var(--line); margin-top: 4px; }
 .totais b { color: var(--ink-2); font-weight: 700; }
 
@@ -211,11 +210,14 @@ footer a { color: var(--accent-ink); }
   .tab-title { font-size: 13.5px; }
   .tab-sub { font-size: 11px; }
   .progress { gap: 10px; }
+  .progress.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .progress.tres .prog:first-child { grid-column: 1 / -1; }
+  .tile-num { font-size: 20px; }
   .prog { padding: 12px 14px 14px; border-radius: 14px; }
   .prog-label { font-size: 13px; }
   .prog-value { font-size: 22px; }
 }
-@media (max-width: 360px) { .tab svg { display: none; } .btn-refresh span { display: none; } .field label { display: none; } .pill { font-size: 11px; padding: 3px 8px; gap: 5px; } .c-actions { gap: 0; } }
+@media (max-width: 360px) { .tab svg { display: none; } .btn-refresh span { display: none; } .field label { display: none; } .pill { font-size: 11px; padding: 3px 8px; gap: 5px; } .c-actions { gap: 0; } .tiles { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) {
   .fill, .c-bar span, .tab { transition: none; }
   .live.ok .dot, .btn-refresh[aria-busy="true"] svg { animation: none; }
@@ -245,14 +247,21 @@ footer a { color: var(--accent-ink); }
     </div>
   </nav>
 
-  <div class="progress">
+  <div class="progress" id="progress">
+    <div class="prog" id="prog-br" hidden>
+      <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>Brasil</span><span class="prog-value" id="pst-br">—</span></div>
+      <div class="track"><div class="fill" id="bar-br"></div></div>
+      <div class="prog-foot" id="info-br">—</div>
+    </div>
     <div class="prog">
       <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>São Paulo</span><span class="prog-value" id="pst-uf">—</span></div>
       <div class="track"><div class="fill" id="bar-uf"></div></div>
+      <div class="prog-foot" id="info-uf">—</div>
     </div>
     <div class="prog">
       <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small><span id="city-name-m">—</span></span><span class="prog-value" id="pst-mu">—</span></div>
       <div class="track"><div class="fill" id="bar-mu"></div></div>
+      <div class="prog-foot" id="info-mu">—</div>
     </div>
   </div>
 
@@ -423,6 +432,7 @@ function lerResultado(json) {
     mapa, todos,
     vagas: carg ? toNum(carg.nv) : null,
     pst: json.s ? json.s.pst : '0,00',
+    secoes: json.s ? { feitas: toNum(json.s.st), total: toNum(json.s.ts) } : null,
     hora: json.ht || json.hg,
     temVotos: todos.some(d => d.vap > 0),
     validos: toNum(v.vv), brancos: toNum(v.vb), nulos: toNum(v.tvn),
@@ -437,6 +447,7 @@ function simular(res, nivel) {
   const total = res.todos.reduce((s, d) => s + d.vap, 0) || 1;
   res.todos.forEach((d, i) => { d.pos = i + 1; d.pvap = (d.vap * 100 / total).toFixed(2).replace('.', ','); d.st = res.todos.length > 20 ? (i < 70 ? 'Eleito por QP' : i < 120 ? 'Suplente' : 'Não eleito') : nivel === 'mu' ? '' : i < 2 ? (res.vagas === 2 ? 'Eleito' : '2º turno') : 'Não eleito'; });
   res.temVotos = true; res.pst = nivel === 'mu' ? '83,40' : '57,31';
+  if (res.secoes) res.secoes.feitas = Math.round(res.secoes.total * toNum(res.pst) / 100);
   res.hora = new Date().toLocaleTimeString('pt-BR');
   res.validos = total; res.brancos = Math.floor(total * .03); res.nulos = Math.floor(total * .05);
   return res;
@@ -462,19 +473,26 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
   const meta = c ? `nº <b>${numero}</b> · ${c.partido}` : `nº <b>${numero}</b>`;
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
-  const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
+  const pos = c && uf.temVotos ? ` · <b>${c.pos}º</b> no estado` : '';
   const av = avisoDe(cargo, numero);
   return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
     <div class="c-top">
       <div><div class="c-name">${titulo(nome)}</div><div class="c-meta">${meta}</div></div>
       <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(cargo, numero, titulo(nome))}</div>
     </div>
-    <div class="c-nums">
-      <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small>${selo(uf, numero)}</div>
-      <div class="c-city"><span>${nomeCidade()}: <b>${m ? fmt(m.vap) : '—'}</b></span>${linha2022(cargo, numero, '')}</div>
+    <div class="tiles">
+      <div class="tile">
+        <div class="tile-label">São Paulo</div>
+        <div class="tile-num"><span class="c-votes">${c ? fmt(c.vap) : '—'}</span>${selo(uf, numero)}</div>
+        <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
+        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${pos}</span></div>
+      </div>
+      <div class="tile">
+        <div class="tile-label">${nomeCidade()}</div>
+        <div class="tile-num c-city"><b>${m ? fmt(m.vap) : '—'}</b>${selo(mu, numero)}</div>
+        <div class="tile-foot">${m ? `<span><b>${m.pvap}%</b> dos válidos</span>` : ''}${linha2022(cargo, numero, '')}</div>
+      </div>
     </div>
-    <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
-    <div class="c-foot"><b>${c ? c.pvap + '%' : '—'}</b> dos votos válidos · ${pos}</div>
   </li>`;
 }
 
@@ -504,13 +522,20 @@ function renderDeputados() {
 }
 
 // ===== Aba: Presidente, Governo e Senado (na cidade + geral) =====
-function linhaGeral(cfg, g, numero) {
+function blocoGeral(cfg, g, numero) {
   const gc = g && g.mapa[numero];
-  const [txt, cls] = g ? situacao(gc, g.temVotos) : ['Carregando…', ''];
-  const total = gc ? `<b>${fmt(gc.vap)}</b> · ${gc.pvap}%${g.temVotos ? ' · ' + gc.pos + 'º' : ''}` : '<b>—</b>';
-  // Selo só quando há resultado (Eleito, 2º turno, Não eleito); "Em apuração" em todas as linhas seria só ruído.
-  const neutro = /^(Em apuração|Aguardando|Carregando…)$/.test(txt);
-  return `<div class="m-geral"><span>${cfg.onde === 'SP' ? 'Em SP' : 'No Brasil'}: ${total}</span>${neutro ? '' : `<span class="pill ${cls}">${txt}</span>`}</div>`;
+  const pos = gc && g.temVotos ? ` · <b>${gc.pos}º</b>` : '';
+  return `<div class="tile m-geral">
+      <div class="tile-label">${cfg.onde === 'SP' ? 'São Paulo' : 'Brasil'}</div>
+      <div class="tile-num">${gc ? fmt(gc.vap) : '—'}${selo(g, numero)}</div>
+      <div class="tile-foot"><span><b>${gc ? gc.pvap + '%' : '—'}</b> dos válidos${pos}</span></div>
+    </div>`;
+}
+// Selo do resultado geral (Eleito, 2º turno, Não eleito); "Em apuração" em todas as linhas seria só ruído.
+function seloGeral(g, numero) {
+  if (!g) return '';
+  const [txt, cls] = situacao(g.mapa[numero], g.temVotos);
+  return /^(Em apuração|Aguardando|Carregando…|Não encontrado)$/.test(txt) ? '' : `<span class="pill ${cls}">${txt}</span>`;
 }
 function renderMajoritarios() {
   for (const cd of Object.keys(MAJORITARIOS)) {
@@ -528,20 +553,28 @@ function renderMajoritarios() {
         const largura = max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
         const extra = c.vice && cfg.vice ? ` · vice: ${titulo(c.vice)}` : '';
         return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
-          <span class="rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
-          <div class="m-main">
-            <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-right">${selo(mu, c.n)}<span class="m-votes">${fmt(c.vap)}</span>${botaoFav(cd, c.n, titulo(c.nmu))}</span></div>
-            <div class="m-sub"><span>${c.n} · ${c.partido}${extra}</span><span class="m-pct"><b>${c.pvap}%</b> em ${nomeCidade()}</span></div>
-            <div class="c-bar" title="${fmt(c.vap)} votos em ${nomeCidade()}"><span style="width:${largura}%"></span></div>
-            ${linha2022(cd, c.n, ' aqui')}
-            ${linhaGeral(cfg, g, c.n)}
+          <div class="c-top">
+            <div class="m-id">
+              <div class="m-title"><span class="rank" title="Posição em ${nomeCidade()}">${mu.temVotos ? c.pos + 'º' : '–'}</span><span class="m-name">${titulo(c.nmu)}</span></div>
+              <div class="c-meta">nº <b>${c.n}</b> · ${c.partido}${extra}</div>
+            </div>
+            <div class="c-actions">${seloGeral(g, c.n)}${botaoFav(cd, c.n, titulo(c.nmu))}</div>
+          </div>
+          <div class="tiles">
+            <div class="tile">
+              <div class="tile-label">${nomeCidade()}</div>
+              <div class="tile-num"><span class="m-votes">${fmt(c.vap)}</span>${selo(mu, c.n)}</div>
+              <div class="c-bar" title="${fmt(c.vap)} votos em ${nomeCidade()}"><span style="width:${largura}%"></span></div>
+              <div class="tile-foot"><span><b>${c.pvap}%</b> dos válidos</span>${linha2022(cd, c.n, '')}</div>
+            </div>
+            ${blocoGeral(cfg, g, c.n)}
           </div>
         </li>`;
       }).join('')}</ul>
       <div class="totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
     }
     $('sec-' + cd).innerHTML = `
-      <div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${cfg.sub} · votos em ${nomeCidade()} e ${cfg.onde === 'SP' ? 'em SP' : 'no Brasil'}</div></div></div>
+      <div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${cfg.sub}</div></div></div>
       ${corpo}`;
   }
 }
@@ -554,13 +587,14 @@ function render() {
   $('tab-maj-sub').textContent = 'votos em ' + nomeCidade();
   if (aba === 'dep') renderDeputados(); else renderMajoritarios();
 
+  const br = aba === 'maj' ? pega('br-1') : null;
   const uf = pega(aba === 'dep' ? 'uf-6' : 'uf-3') || pega('uf-6') || pega('uf-3');
-  const mu = pega(aba === 'dep' ? 'mu-6' : 'mu-3') || pega('mu-6') || pega('mu-3');
-  const pct = (x) => x ? `${x.pst}<small>%</small>` : '—';
-  $('pst-uf').innerHTML = pct(uf);
-  $('pst-mu').innerHTML = pct(mu);
-  $('bar-uf').style.width = (uf ? toNum(uf.pst) : 0) + '%';
-  $('bar-mu').style.width = (mu ? toNum(mu.pst) : 0) + '%';
+  const mu = pega(aba === 'dep' ? 'mu-6' : 'mu-3') || pega('mu-6') || pega('mu-3') || pega('mu-1');
+  $('prog-br').hidden = aba !== 'maj';
+  $('progress').classList.toggle('tres', aba === 'maj');
+  preencherAndamento('br', br);
+  preencherAndamento('uf', uf);
+  preencherAndamento('mu', mu);
   $('city-name-m').textContent = nomeCidade();
 }
 
@@ -613,6 +647,20 @@ function mostrarAvisosSituacao() {
       <button type="button" class="aviso-x" data-fechar="${a.id}" aria-label="Dispensar aviso sobre ${a.nome}">×</button>
     </div>`).join('') + (avisos.length > 1 ? '<div class="avisos-acoes"><button type="button" data-fechar="todos">Dispensar todos</button></div>' : '');
   document.title = (avisos.length ? `(${avisos.length}) ` : '') + 'Apuração SP 2026';
+}
+
+// Quadro de urnas apuradas: %, barra, quantas urnas de quantas e quanto falta.
+function preencherAndamento(id, res) {
+  const pst = res ? toNum(res.pst) : 0;
+  $('pst-' + id).innerHTML = res ? `${res.pst}<small>%</small>` : '—';
+  $('bar-' + id).style.width = pst + '%';
+  let info = '—';
+  if (res && res.secoes && res.secoes.total) {
+    const { feitas, total } = res.secoes;
+    info = feitas >= total ? '<b>Apuração concluída</b>'
+      : `Faltam <b>${(100 - pst).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</b> · ${fmt(feitas)} de ${fmt(total)} urnas`;
+  }
+  $('info-' + id).innerHTML = info;
 }
 
 function mostrarAviso(erros) {
