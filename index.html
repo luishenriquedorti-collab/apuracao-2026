@@ -677,6 +677,13 @@ function lerResultado(json) {
   }
   todos.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
   todos.forEach((d, i) => { d.pos = i + 1; });
+  // O TSE só preenche a situação de cada candidato no fim da totalização, mas antes disso já avisa no campo
+  // 'md' (matematicamente definido) quando o resultado não muda mais: 'e' = o 1º colocado está eleito;
+  // 's' = o 2º turno entre os dois primeiros está definido. Vale só para cargo de uma vaga (Presidente, Governador).
+  if (carg && toNum(carg.nv) === 1 && todos[1] && !todos.some(d => d.st)) {
+    if (json.md === 'e') { todos[0].st = 'Eleito'; todos[0].e = 's'; }
+    if (json.md === 's') { todos[0].st = '2º turno'; todos[1].st = '2º turno'; }
+  }
   const v = json.v || {};
   return {
     mapa, todos,
