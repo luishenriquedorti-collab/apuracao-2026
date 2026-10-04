@@ -85,7 +85,7 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
 .prog-value small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 2px; }
 .prog-foot { font-size: 12px; color: var(--muted); font-weight: 500; }
 .prog-foot b { color: var(--ink-2); font-weight: 700; }
-.progress.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.progress.quatro { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .track { height: 8px; border-radius: 4px; background: var(--bar-track); overflow: hidden; }
 .fill { height: 100%; width: 0; border-radius: 4px; background: var(--accent); transition: width .8s ease; }
 
@@ -221,9 +221,9 @@ html.tv .tvm { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap:
 .tvm-title { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
 .tvm-meters { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .8rem; }
 .tvm-meter { background: var(--surface); border-radius: 1rem; box-shadow: var(--shadow); padding: .65rem 1rem .75rem; display: grid; gap: .35rem; min-width: 0; }
-.tvm-meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; }
+.tvm-meter-top { display: grid; gap: .05rem; min-width: 0; }
 .tvm-meter-label { font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tvm-meter-val { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.tvm-meter-val { line-height: 1.1; font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
 .tvm-meter-val small { font-size: .8rem; color: var(--muted); }
 .tvm-meter .track { height: .4rem; border-radius: .2rem; }
 .tvm-meter-foot { font-size: .7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -231,6 +231,11 @@ html.tv .tvm { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap:
 .tvm-hora { font-size: 2.3rem; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
 .tvm-stamp { display: inline-flex; align-items: center; gap: .45rem; margin-top: .35rem; font-size: .8rem; color: var(--ink-2); }
 .tvm-stamp .dot { width: .55rem; height: .55rem; }
+.tvm-refresh { display: inline-flex; align-items: center; gap: .35rem; margin-left: .4rem; font-size: .8rem; font-weight: 800; min-height: 0; padding: .3rem .7rem; border-radius: .6rem; background: var(--surface); border: 1px solid var(--line); color: var(--accent-ink); cursor: pointer; }
+.tvm-refresh:hover { background: var(--accent-soft); }
+.tvm-refresh svg { width: .9rem; height: .9rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.tvm-refresh[aria-busy="true"] svg { animation: girar .9s linear infinite; }
+html.tv:not(.mexeu) .tvm-refresh { cursor: none; }
 .tvm-bar { display: flex; align-items: center; gap: 1rem; min-height: 2.6rem; }
 .tvm-telas { display: flex; gap: .5rem; flex: none; }
 .tvm-tela { position: relative; overflow: hidden; font-size: .95rem; font-weight: 800; padding: .5rem 1.1rem; min-height: 0; border-radius: .8rem; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
@@ -250,6 +255,8 @@ html.tv:not(.mexeu) { cursor: none; }
 .tvm-body { display: grid; gap: 1.2rem; min-height: 0; }
 .tvm-body.dep { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); }
 .tvm-body.maj { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.tvm-body.fav .tvm-row.fav { background: transparent; margin-inline: 0; padding-inline: 0; }
+.tvm-body.fav { grid-template-columns: repeat(auto-fit, minmax(min(100%, 40rem), 1fr)); align-items: start; align-content: start; }
 .tvm-col { display: grid; gap: 1.2rem; align-content: start; min-height: 0; }
 .tvm-card { background: var(--surface); border-radius: 1.2rem; box-shadow: var(--shadow); padding: .9rem 1.3rem .6rem; min-width: 0; min-height: 0; overflow: hidden; }
 .tvm-card-head { display: grid; align-items: end; gap: 0 .8rem; padding-bottom: .45rem; border-bottom: 1px solid var(--line); }
@@ -303,8 +310,7 @@ footer a { color: var(--accent-ink); }
   .tab svg { display: none; }
   .tab-title { font-size: 12.5px; }
   .progress { gap: 10px; }
-  .progress.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .progress.tres .prog:first-child { grid-column: 1 / -1; }
+  .progress.quatro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tile-num { font-size: 20px; }
   .prog { padding: 12px 14px 14px; border-radius: 14px; }
   .prog-label { font-size: 13px; }
@@ -349,6 +355,11 @@ footer a { color: var(--accent-ink); }
       <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>Brasil</span><span class="prog-value" id="pst-br">—</span></div>
       <div class="track"><div class="fill" id="bar-br"></div></div>
       <div class="prog-foot" id="info-br">—</div>
+    </div>
+    <div class="prog" id="prog-zz" hidden>
+      <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>Exterior</span><span class="prog-value" id="pst-zz">—</span></div>
+      <div class="track"><div class="fill" id="bar-zz"></div></div>
+      <div class="prog-foot" id="info-zz">—</div>
     </div>
     <div class="prog">
       <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>São Paulo</span><span class="prog-value" id="pst-uf">—</span></div>
@@ -395,7 +406,7 @@ footer a { color: var(--accent-ink); }
   <div class="tvm-head">
     <div class="tvm-brand"><div class="eyebrow">Eleições 2026 · 1º turno · São Paulo</div><div class="tvm-title">Apuração ao vivo</div></div>
     <div class="tvm-meters" id="tvm-meters"></div>
-    <div class="tvm-clock"><div class="tvm-hora" id="tvm-hora">--:--</div><div class="tvm-stamp"><span class="dot" id="tvm-dot"></span><span id="tvm-stamp">Buscando dados do TSE…</span></div></div>
+    <div class="tvm-clock"><div class="tvm-hora" id="tvm-hora">--:--</div><div class="tvm-stamp"><span class="dot" id="tvm-dot"></span><span id="tvm-stamp">Buscando dados do TSE…</span><button type="button" class="tvm-refresh" id="tvm-atualizar" title="Buscar agora (tecla R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg>Atualizar</button></div></div>
   </div>
   <div class="tvm-bar">
     <div class="tvm-telas" id="tvm-telas"></div>
@@ -438,7 +449,7 @@ const ALIADOS_FORA = [
   { chave: 'mg-6', uf: 'mg', ufNome: 'Minas Gerais', cargo: 6, titulo: 'Deputado Federal · MG', nome: 'THIAGO GANEM', numero: '2275' },
 ];
 const MAJORITARIOS = {
-  1: { titulo: 'Presidente', ele: ELE_FED, sub: 'Presidente da República', vice: 'vice', geral: 'br-1', onde: 'Brasil' },
+  1: { titulo: 'Presidente', ele: ELE_FED, sub: 'Presidente da República', vice: 'vice', geral: 'br-1', onde: 'Brasil', exterior: 'zz-1' },
   3: { titulo: 'Governador', ele: ELE_EST, sub: 'Governador de São Paulo', vice: 'vice', geral: 'uf-3', onde: 'SP' },
   5: { titulo: 'Senador', ele: ELE_EST, sub: '2 vagas · cada eleitor vota em 2 candidatos', vice: null, geral: 'uf-5', onde: 'SP' },
 };
@@ -452,6 +463,7 @@ const ARQUIVOS = {
   ],
   maj: [
     { chave: 'br-1', ele: ELE_FED, cargo: 1, nivel: 'br' },
+    { chave: 'zz-1', ele: ELE_FED, cargo: 1, nivel: 'zz' },   // votos do exterior (só Presidente)
     { chave: 'uf-3', ele: ELE_EST, cargo: 3, nivel: 'uf' },
     { chave: 'uf-5', ele: ELE_EST, cargo: 5, nivel: 'uf' },
     { chave: 'mu-1', ele: ELE_FED, cargo: 1, nivel: 'mu' },
@@ -529,7 +541,7 @@ async function getJSON(path) {
 
 function caminho(a) {
   const c = String(a.cargo).padStart(4, '0');
-  const pasta = a.nivel === 'br' ? 'br' : a.nivel === 'fora' ? a.uf : UF;
+  const pasta = a.nivel === 'br' ? 'br' : a.nivel === 'zz' ? 'zz' : a.nivel === 'fora' ? a.uf : UF;
   const local = a.nivel === 'mu' ? UF + cidade : pasta;
   return `/${a.ele}/dados/${pasta}/${local}-c${c}-e00${a.ele}-u.json`;
 }
@@ -689,8 +701,14 @@ function blocoGeral(cfg, g, numero) {
   return `<div class="tile m-geral">
       <div class="tile-label">${cfg.onde === 'SP' ? 'São Paulo' : 'Brasil'}</div>
       <div class="tile-num">${gc ? fmt(gc.vap) : '—'}${selo(g, numero)}</div>
-      <div class="tile-foot"><span><b>${gc ? gc.pvap + '%' : '—'}</b> dos válidos${pos}</span></div>
+      <div class="tile-foot"><span><b>${gc ? gc.pvap + '%' : '—'}</b> dos válidos${pos}</span>${linhaExterior(cfg, numero)}</div>
     </div>`;
+}
+// Votos do exterior (já somados no total do Brasil), mostrados à parte para o Presidente.
+function linhaExterior(cfg, numero) {
+  if (!cfg.exterior) return '';
+  const z = pega(cfg.exterior), zc = z && z.mapa[numero];
+  return `<span>Exterior: <b>${zc ? fmt(zc.vap) : '—'}</b>${zc && z.temVotos ? ' · ' + zc.pvap + '%' : ''}</span>`;
 }
 // Selo do resultado geral (Eleito, 2º turno, Não eleito); "Em apuração" em todas as linhas seria só ruído.
 function seloGeral(g, numero) {
@@ -777,7 +795,8 @@ function contarFavoritos() {
 // ===== Tela =====
 // ===== Modo TV =====
 let modoTV = false, telaTV = 0, timerTela = null, wakeLock = null, timerMouse = null;
-const TELAS_TV = [{ id: 'dep', nome: 'Nossos deputados' }, { id: 'maj', nome: 'Presidente, Governo e Senado' }];
+const telasTV = () => [{ id: 'dep', nome: 'Nossos deputados' }, { id: 'maj', nome: 'Presidente, Governo e Senado' }]
+  .concat(favoritos.size ? [{ id: 'fav', nome: `Favoritos (${favoritos.size})` }] : []);
 const TEMPO_TELA = 25;
 
 function situTV(c, res) {
@@ -825,7 +844,19 @@ function cartaoTVMajoritario(cd) {
   let corpo = '<div class="tvm-vazio">Carregando…</div>';
   if (mu) {
     const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
-    corpo = `<div class="tvm-rows">${lista.map(c => {
+    corpo = `<div class="tvm-rows">${lista.map(c => linhaTVMaj(cd, c, mu, g)).join('')}</div>
+    <div class="tvm-totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
+  }
+  return cartaoTVMajMoldura(cd, corpo);
+}
+function cartaoTVMajMoldura(cd, corpo) {
+  const cfg = MAJORITARIOS[cd], onde = cfg.onde === 'SP' ? 'São Paulo' : 'Brasil';
+  return `<section class="tvm-card">
+    <div class="tvm-card-head tvm-grid-maj"><div style="grid-column: 1 / 3"><h3>${cfg.titulo}</h3><div class="sub">${cfg.sub}</div></div><div class="tvm-colh" style="text-align:right">${nomeCidade()}</div><div class="tvm-colh" style="text-align:right">${onde}</div></div>
+    ${corpo}
+  </section>`;
+}
+function linhaTVMaj(cd, c, mu, g) {
       const gc = g && g.mapa[c.n];
       const sg = seloGeral(g, c.n).replace('class="pill', 'class="pill mini');
       return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
@@ -834,13 +865,23 @@ function cartaoTVMajoritario(cd) {
         <div class="tvm-num dir"><div class="v">${fmt(c.vap)}</div><small><b>${c.pvap}%</b>${selo(mu, c.n) ? ' · ' + selo(mu, c.n).replace(/<[^>]+>/g, '') : ''}</small></div>
         <div class="tvm-num dir tvm-geral"><div class="v">${gc ? gc.pvap + '%' : '—'}</div><small>${gc ? fmt(gc.vap) : ''}</small>${sg}</div>
       </div>`;
-    }).join('')}</div>
-    <div class="tvm-totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
+}
+// Tela de favoritos na TV: todos os marcados com o coração, agrupados por cargo.
+function htmlTVFavoritos() {
+  const partes = [];
+  for (const cd of Object.keys(CARGOS)) {
+    const cfg = CARGOS[cd], uf = pega('uf-' + cd), mu = pega('mu-' + cd);
+    const lista = [...cfg.principais, ...cfg.conhecimento].filter(([, n]) => ehFav(cd, n));
+    if (lista.length) partes.push(`<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}<div class="tvm-rows">${ordenar(cd, lista, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div></section>`);
   }
-  return `<section class="tvm-card">
-    <div class="tvm-card-head tvm-grid-maj"><div style="grid-column: 1 / 3"><h3>${cfg.titulo}</h3><div class="sub">${cfg.sub}</div></div><div class="tvm-colh" style="text-align:right">${nomeCidade()}</div><div class="tvm-colh" style="text-align:right">${onde}</div></div>
-    ${corpo}
-  </section>`;
+  for (const x of ALIADOS_FORA) if (ehFav(x.chave, x.numero)) partes.push(cartaoTVFora(x));
+  for (const cd of Object.keys(MAJORITARIOS)) {
+    const marcados = [...favoritos].filter(k => k.startsWith(cd + '-')).map(k => k.slice(cd.length + 1));
+    if (!marcados.length) continue;
+    const mu = pega('mu-' + cd), g = pega(MAJORITARIOS[cd].geral);
+    partes.push(cartaoTVMajMoldura(cd, mu ? `<div class="tvm-rows">${mu.todos.filter(c => marcados.includes(c.n)).map(c => linhaTVMaj(cd, c, mu, g)).join('')}</div>` : '<div class="tvm-vazio">Carregando…</div>'));
+  }
+  return partes.join('');
 }
 function medidorTV(rotulo, res) {
   const pst = res ? toNum(res.pst) : 0;
@@ -849,20 +890,23 @@ function medidorTV(rotulo, res) {
   return `<div class="tvm-meter"><div class="tvm-meter-top"><span class="tvm-meter-label">${rotulo}</span><span class="tvm-meter-val">${res ? res.pst : '—'}<small>%</small></span></div><div class="track"><div class="fill" style="width:${pst}%"></div></div><div class="tvm-meter-foot">${foot}</div></div>`;
 }
 function renderTV() {
-  const tela = TELAS_TV[telaTV].id;
+  const telas = telasTV();
+  if (telaTV >= telas.length) telaTV = 0;
+  const tela = telas[telaTV].id;
   $('tvm-meters').innerHTML = [
     medidorTV('Brasil', pega('br-1')),
+    medidorTV('Exterior', pega('zz-1')),
     medidorTV('São Paulo', pega('uf-6') || pega('uf-3')),
     medidorTV(nomeCidade(), pega('mu-6') || pega('mu-3') || pega('mu-1')),
     ...ALIADOS_FORA.map(x => medidorTV(x.ufNome, pega(x.chave))),
   ].join('');
-  $('tvm-telas').innerHTML = TELAS_TV.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo"></span></button>`).join('');
+  $('tvm-telas').innerHTML = telas.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo"></span></button>`).join('');
   $('tvm-aviso').innerHTML = avisos.slice(0, 2).map(a => `<div class="aviso ${a.tipo}"><span class="aviso-dot"></span><div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b> · ${a.cargo}</div></div>`).join('');
   const body = $('tvm-body');
   body.className = 'tvm-body ' + tela;
   body.innerHTML = tela === 'dep'
     ? `<div class="tvm-col">${cartaoTVDeputados(6)}</div><div class="tvm-col">${cartaoTVDeputados(7)}${ALIADOS_FORA.map(cartaoTVFora).join('')}</div>`
-    : Object.keys(MAJORITARIOS).map(cartaoTVMajoritario).join('');
+    : tela === 'maj' ? Object.keys(MAJORITARIOS).map(cartaoTVMajoritario).join('') : htmlTVFavoritos();
   tickTV();
   ajustarTV();
 }
@@ -884,7 +928,8 @@ function tickTV() {
   $('tvm-stamp').textContent = falhou ? 'Sem resposta do TSE, tentando de novo' : `${uf ? 'TSE às ' + uf.hora : 'Sem dados ainda'} · atualiza em ${contador}s`;
 }
 function irTela(i) {
-  telaTV = (i + TELAS_TV.length) % TELAS_TV.length;
+  const n = telasTV().length;
+  telaTV = (i + n) % n;
   clearInterval(timerTela);
   timerTela = setInterval(() => irTela(telaTV + 1), TEMPO_TELA * 1000);
   renderTV();
@@ -929,7 +974,9 @@ function render() {
   const uf = pega(aba === 'dep' ? 'uf-6' : 'uf-3') || pega('uf-6') || pega('uf-3');
   const mu = pega(aba === 'dep' ? 'mu-6' : 'mu-3') || pega('mu-6') || pega('mu-3') || pega('mu-1');
   $('prog-br').hidden = aba === 'dep';
-  $('progress').classList.toggle('tres', aba !== 'dep');
+  $('prog-zz').hidden = aba === 'dep';
+  $('progress').classList.toggle('quatro', aba !== 'dep');
+  preencherAndamento('zz', aba !== 'dep' ? pega('zz-1') : null);
   preencherAndamento('br', br);
   preencherAndamento('uf', uf);
   preencherAndamento('mu', mu);
@@ -1026,6 +1073,7 @@ async function atualizar() {
   pendente = false;
   $('refresh').disabled = true;
   $('refresh').setAttribute('aria-busy', 'true');
+  $('tvm-atualizar').setAttribute('aria-busy', 'true');
   const erros = [];
   const cid = cidade;
   ciclo += 1;
@@ -1052,6 +1100,7 @@ async function atualizar() {
   buscando = false;
   $('refresh').disabled = false;
   $('refresh').removeAttribute('aria-busy');
+  $('tvm-atualizar').removeAttribute('aria-busy');
   contador = INTERVALO;
   tick();
   if (pendente) atualizar();
@@ -1141,12 +1190,14 @@ $('refresh').addEventListener('click', atualizar);
 $('btn-tv').addEventListener('click', () => entrarTV(true));
 $('tvm-full').addEventListener('click', telaCheia);
 $('tvm-sair').addEventListener('click', sairTV);
+$('tvm-atualizar').addEventListener('click', atualizar);
 $('tvm-telas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-tela]'); if (b) irTela(Number(b.dataset.tela)); });
 document.addEventListener('keydown', (ev) => {
   if (!modoTV) return;
   if (ev.key === 'Escape') sairTV();
   if (ev.key === 'ArrowRight') irTela(telaTV + 1);
   if (ev.key === 'ArrowLeft') irTela(telaTV - 1);
+  if (ev.key === 'r' || ev.key === 'R') atualizar();
 });
 // Saiu da tela cheia pelo Esc do navegador: volta ao modo normal.
 let estavaTelaCheia = false;
