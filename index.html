@@ -100,6 +100,26 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); o
 .banner.info { background: var(--accent-soft); color: var(--accent-ink); }
 .banner.err { background: var(--bad-bg); color: var(--bad); }
 
+/* Quanto subiu desde a atualização anterior do TSE */
+.up { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0; color: var(--good); background: var(--good-bg); border-radius: 999px; padding: 1px 8px; margin-left: 8px; vertical-align: 3px; white-space: nowrap; }
+.m-right .up { margin-left: 0; vertical-align: 0; }
+
+/* Avisos de mudança de situação */
+.avisos { display: grid; gap: 8px; }
+.aviso { display: flex; align-items: center; gap: 12px; padding: 10px 8px 10px 14px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.aviso-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--good-dot); box-shadow: 0 0 0 4px var(--good-bg); }
+.aviso.warn .aviso-dot { background: var(--warn-dot); box-shadow: 0 0 0 4px var(--warn-bg); }
+.aviso-txt { flex: 1; min-width: 0; font-size: 14px; }
+.aviso-txt b { font-weight: 800; }
+.aviso-txt .sit { color: var(--good); }
+.aviso.warn .aviso-txt .sit { color: var(--warn); }
+.aviso-txt small { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+.aviso-x { display: grid; place-items: center; width: 34px; height: 34px; min-height: 0; padding: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 20px; font-weight: 500; line-height: 1; flex: none; }
+.aviso-x:hover { background: var(--neutral-bg); color: var(--ink); }
+.avisos-acoes { display: flex; justify-content: flex-end; }
+.avisos-acoes button { font-size: 12.5px; min-height: 30px; padding: 4px 10px; background: transparent; color: var(--ink-2); }
+.avisos-acoes button:hover { background: var(--neutral-bg); }
+
 /* Cartões */
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; align-items: start; }
 .grid.maj { grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
@@ -145,6 +165,9 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .star[aria-pressed="true"] svg path { fill: var(--fav); }
 .cand.fav, .m-row.fav { background: var(--fav-bg); margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; }
 .cand.fav + .cand, .m-row.fav + .m-row { border-top-color: transparent; }
+.cand.mudou { margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; box-shadow: inset 0 0 0 2px var(--good-dot); }
+.cand.mudou.warn { box-shadow: inset 0 0 0 2px var(--warn-dot); }
+.cand.mudou + .cand { border-top-color: transparent; }
 .extra { margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .extra-title { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .extra .cand:first-child { border-top: 0; }
@@ -232,6 +255,7 @@ footer a { color: var(--accent-ink); }
     <button id="refresh" class="btn-primary" type="button">Atualizar agora</button>
   </div>
   <div id="banner" class="banner" hidden></div>
+  <div id="avisos" class="avisos" aria-live="polite" hidden></div>
 
   <main>
     <div class="grid" id="painel-dep" role="tabpanel" aria-labelledby="tab-dep">
@@ -330,6 +354,13 @@ function botaoFav(cargo, numero, nome) {
 let aba = guardado('apuracao-aba', 'dep') === 'maj' ? 'maj' : 'dep';
 let municipios = [];
 const dados = {};            // chave -> { res, cidade, em }
+let ciclo = 0;               // conta as atualizações (para buscar deputados de vez em quando na outra aba)
+
+// Situação oficial já vista de cada deputado nosso (para avisar quando mudar) e avisos abertos.
+const SUF = DEMO ? '-demo' : '';
+const lerJSON = (k, padrao) => { try { return JSON.parse(guardado(k, '')) || padrao; } catch (e) { return padrao; } };
+let situacoesVistas = lerJSON('apuracao-situacoes' + SUF, {});
+let avisos = lerJSON('apuracao-avisos' + SUF, []);   // [{ id, chave, nome, cargo, sit, tipo, hora }]
 let contador = INTERVALO;
 let buscando = false;
 let pendente = false;      // pedido de atualização que chegou no meio de uma busca
@@ -400,6 +431,7 @@ function simular(res, nivel) {
   const total = res.todos.reduce((s, d) => s + d.vap, 0) || 1;
   res.todos.forEach((d, i) => { d.pos = i + 1; d.pvap = (d.vap * 100 / total).toFixed(2).replace('.', ','); d.st = res.todos.length > 20 ? (i < 70 ? 'Eleito por QP' : i < 120 ? 'Suplente' : 'Não eleito') : nivel === 'mu' ? '' : i < 2 ? (res.vagas === 2 ? 'Eleito' : '2º turno') : 'Não eleito'; });
   res.temVotos = true; res.pst = nivel === 'mu' ? '83,40' : '57,31';
+  res.hora = new Date().toLocaleTimeString('pt-BR');
   res.validos = total; res.brancos = Math.floor(total * .03); res.nulos = Math.floor(total * .05);
   return res;
 }
@@ -425,13 +457,14 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const meta = c ? `nº <b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `nº <b>${numero}</b>`;
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
   const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
-  return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}">
+  const av = avisoDe(cargo, numero);
+  return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
     <div class="c-top">
       <div><div class="c-name">${titulo(nome)}</div><div class="c-meta">${meta}</div></div>
       <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(cargo, numero, titulo(nome))}</div>
     </div>
     <div class="c-nums">
-      <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small></div>
+      <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small>${selo(uf, numero)}</div>
       <div class="c-city"><span>${nomeCidade()}: <b>${m ? fmt(m.vap) : '—'}</b></span>${linha2022(cargo, numero, '')}</div>
     </div>
     <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
@@ -489,7 +522,7 @@ function renderMajoritarios() {
         return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
           <span class="rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
           <div class="m-main">
-            <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-right"><span class="m-votes">${fmt(c.vap)}</span>${botaoFav(cd, c.n, titulo(c.nmu))}</span></div>
+            <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-right">${selo(mu, c.n)}<span class="m-votes">${fmt(c.vap)}</span>${botaoFav(cd, c.n, titulo(c.nmu))}</span></div>
             <div class="m-sub"><span>${c.n} · ${c.partido}${extra}</span><span class="m-pct"><b>${c.pvap}%</b> em ${nomeCidade()}</span></div>
             <div class="c-bar" title="${fmt(c.vap)} votos em ${nomeCidade()}"><span style="width:${largura}%"></span></div>
             ${linha2022(cd, c.n, ' aqui')}
@@ -523,6 +556,57 @@ function render() {
   $('city-name-m').textContent = nomeCidade();
 }
 
+// "+1.234": votos a mais desde a atualização anterior do TSE. Se o TSE ainda não publicou
+// dados novos (mesmo horário), mantém a última diferença em vez de zerar a cada busca.
+function calcularSubida(res, ant) {
+  res.subida = {};
+  if (!ant) return;
+  if (ant.hora === res.hora) { res.subida = ant.subida || {}; res.horaAnterior = ant.horaAnterior; return; }
+  res.horaAnterior = ant.hora;
+  for (const c of res.todos) {
+    const antes = ant.mapa[c.n];
+    if (antes && c.vap > antes.vap) res.subida[c.n] = c.vap - antes.vap;
+  }
+}
+function selo(res, numero) {
+  const d = res && res.subida && res.subida[numero];
+  return d ? `<span class="up" title="Votos a mais desde a atualização anterior do TSE${res.horaAnterior ? ' (' + res.horaAnterior + ')' : ''}">+${fmt(d)}</span>` : '';
+}
+
+// Avisa quando um deputado nosso passa a Eleito ou Suplente.
+function conferirSituacoes(cargo, res) {
+  let mudou = false;
+  for (const [nome, numero] of CARGOS[cargo].principais) {
+    const c = res.mapa[numero];
+    if (!c) continue;
+    const sit = c.st.trim() || (c.e === 's' ? 'Eleito' : '');
+    const chave = cargo + '-' + numero;
+    const antes = situacoesVistas[chave];   // undefined = primeira vez neste navegador (só guarda, não avisa)
+    if (antes !== sit) {
+      const tipo = /n[aã]o eleito/i.test(sit) ? '' : /eleito/i.test(sit) ? 'good' : /suplente/i.test(sit) ? 'warn' : '';
+      if (antes !== undefined && tipo) {
+        avisos = avisos.filter(a => a.chave !== chave);
+        avisos.unshift({ id: chave + '-' + Date.now(), chave, nome: titulo(nome), cargo: CARGOS[cargo].titulo, sit, tipo, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
+        avisos = avisos.slice(0, 8);
+      }
+      situacoesVistas[chave] = sit;
+      mudou = true;
+    }
+  }
+  if (mudou) { guardar('apuracao-situacoes' + SUF, JSON.stringify(situacoesVistas)); guardar('apuracao-avisos' + SUF, JSON.stringify(avisos)); }
+}
+const avisoDe = (cargo, numero) => avisos.find(a => a.chave === cargo + '-' + numero);
+function mostrarAvisosSituacao() {
+  const box = $('avisos');
+  box.hidden = avisos.length === 0;
+  box.innerHTML = avisos.map(a => `<div class="aviso ${a.tipo}">
+      <span class="aviso-dot"></span>
+      <div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b><small>${a.cargo} · às ${a.hora}</small></div>
+      <button type="button" class="aviso-x" data-fechar="${a.id}" aria-label="Dispensar aviso sobre ${a.nome}">×</button>
+    </div>`).join('') + (avisos.length > 1 ? '<div class="avisos-acoes"><button type="button" data-fechar="todos">Dispensar todos</button></div>' : '');
+  document.title = (avisos.length ? `(${avisos.length}) ` : '') + 'Apuração SP 2026';
+}
+
 function mostrarAviso(erros) {
   const ban = $('banner');
   const uf = pega('uf-6') || pega('uf-3');
@@ -550,11 +634,18 @@ async function atualizar() {
   $('refresh').textContent = 'Atualizando…';
   const erros = [];
   const cid = cidade;
-  await Promise.all(ARQUIVOS[aba].map(async (a) => {
+  ciclo += 1;
+  // Na aba de Presidente/Governo/Senado, confere os deputados a cada 3 atualizações (para os avisos de situação).
+  const lista = ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel === 'uf') : []);
+  await Promise.all(lista.map(async (a) => {
     try {
       let res = lerResultado(await getJSON(caminho(a)));
       if (DEMO) res = simular(res, a.nivel);
-      if (a.nivel === 'uf' || cid === cidade) dados[a.chave] = { res, cidade: cid, em: Date.now() };
+      if (a.nivel !== 'mu' || cid === cidade) {
+        calcularSubida(res, pega(a.chave));
+        if (a.nivel === 'uf' && CARGOS[a.cargo]) conferirSituacoes(a.cargo, res);
+        dados[a.chave] = { res, cidade: cid, em: Date.now() };
+      }
     } catch (e) {
       erros.push(e.message);
     }
@@ -562,6 +653,7 @@ async function atualizar() {
   falhou = erros.length > 0;
   render();
   mostrarAviso(erros);
+  mostrarAvisosSituacao();
   buscando = false;
   $('refresh').disabled = false;
   $('refresh').textContent = 'Atualizar agora';
@@ -620,6 +712,14 @@ function trocarAba(nova) {
 }
 
 document.addEventListener('click', (ev) => {
+  const fechar = ev.target.closest('[data-fechar]');
+  if (fechar) {
+    avisos = fechar.dataset.fechar === 'todos' ? [] : avisos.filter(a => a.id !== fechar.dataset.fechar);
+    guardar('apuracao-avisos' + SUF, JSON.stringify(avisos));
+    mostrarAvisosSituacao();
+    render();
+    return;
+  }
   const fav = ev.target.closest('[data-fav]');
   if (fav) {
     const k = fav.dataset.fav;
@@ -659,6 +759,7 @@ setInterval(() => {
 }, 1000);
 
 render();
+mostrarAvisosSituacao();
 carregarMunicipios().then(() => { render(); atualizar(); });
 </script>
 </body>
