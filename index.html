@@ -508,6 +508,7 @@ const CARGOS = {
       ['ELEUSES PAIVA', '5555'], ['FELIPE BECARI', '2007'], ['GILBERTO NASCIMENTO', '2022'],
       ['CARLOS ZARATINE', '1370'], ['ARLINDO CHINAGLIA', '1322'], ['JONAS DONIZETE', '4000'],
       ['MARANGONI', '2044'], ['RENATA ABREU', '2020'], ['RIBAMAR', '2019'], ['THOMÉ ABDUCH', '1001'],
+      ['ANTÔNIO CARLOS RODRIGUES', '2040', 'fora-planilha'],   // acompanhado, mas não está na planilha
     ],
     conhecimento: [['PAULO BILINSKY', '2247'], ['MOTTA', '2244']],
   },
@@ -576,7 +577,7 @@ const ehFav = (cargo, numero) => favoritos.has(cargo + '-' + numero);
 
 // Votos no 1º turno de 2022 em Nova Granada (Dados Abertos do TSE, votacao_candidato_munzona_2022),
 // ligados pelo nome completo de registro. Chave = cargo de 2026 - número de 2026 -> [votos, cargo disputado em 2022].
-const VOTOS_2022_NG = {"7-44250":[2,"Dep. Federal"],"7-22444":[33,"Dep. Estadual"],"1-13":[5130,"Presidente"],"1-35":[0,"Dep. Federal"],"3-10":[4397,"Governador"],"3-13":[3208,"Governador"],"3-16":[4,"Presidente"],"3-80":[41,"Senador"],"5-111":[424,"Dep. Federal"],"5-160":[0,"Dep. Federal"],"5-180":[45,"Dep. Federal"],"5-222":[3,"Dep. Estadual"],"5-400":[403,"Presidente"],"6-1001":[24,"Dep. Estadual"],"6-1322":[25,"Dep. Federal"],"6-1370":[234,"Dep. Federal"],"6-2007":[45,"Dep. Federal"],"6-2019":[0,"Dep. Federal"],"6-2020":[2151,"Dep. Federal"],"6-2022":[6,"Dep. Federal"],"6-2044":[0,"Dep. Federal"],"6-2244":[383,"Dep. Federal"],"6-2247":[24,"Dep. Federal"],"6-4000":[6,"Dep. Federal"],"7-10222":[460,"Dep. Estadual"],"7-15150":[0,"Dep. Estadual"],"7-20007":[0,"Dep. Estadual"],"7-20520":[0,"Dep. Estadual"],"7-40211":[842,"Dep. Estadual"],"7-55455":[1792,"Dep. Estadual"]};
+const VOTOS_2022_NG = {"6-2040":[164,"Dep. Federal"],"7-44250":[2,"Dep. Federal"],"7-22444":[33,"Dep. Estadual"],"1-13":[5130,"Presidente"],"1-35":[0,"Dep. Federal"],"3-10":[4397,"Governador"],"3-13":[3208,"Governador"],"3-16":[4,"Presidente"],"3-80":[41,"Senador"],"5-111":[424,"Dep. Federal"],"5-160":[0,"Dep. Federal"],"5-180":[45,"Dep. Federal"],"5-222":[3,"Dep. Estadual"],"5-400":[403,"Presidente"],"6-1001":[24,"Dep. Estadual"],"6-1322":[25,"Dep. Federal"],"6-1370":[234,"Dep. Federal"],"6-2007":[45,"Dep. Federal"],"6-2019":[0,"Dep. Federal"],"6-2020":[2151,"Dep. Federal"],"6-2022":[6,"Dep. Federal"],"6-2044":[0,"Dep. Federal"],"6-2244":[383,"Dep. Federal"],"6-2247":[24,"Dep. Federal"],"6-4000":[6,"Dep. Federal"],"7-10222":[460,"Dep. Estadual"],"7-15150":[0,"Dep. Estadual"],"7-20007":[0,"Dep. Estadual"],"7-20520":[0,"Dep. Estadual"],"7-40211":[842,"Dep. Estadual"],"7-55455":[1792,"Dep. Estadual"]};
 const CARGO_2026 = { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Dep. Federal', 7: 'Dep. Estadual' };
 function linha2022(cargo, numero, sufixo) {
   if (cidade !== CIDADE_PADRAO) return '';
