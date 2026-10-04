@@ -355,7 +355,7 @@ footer a { color: var(--accent-ink); }
   .prog-value { font-size: 22px; }
 }
 @media (max-width: 360px) { .tab svg { display: none; } .btn-refresh span { display: none; } .field label { display: none; } .pill { font-size: 11px; padding: 3px 8px; gap: 5px; } .c-actions { gap: 0; } .tiles { grid-template-columns: minmax(0, 1fr); } }
-/* ===== Festa: Flávio Bolsonaro eleito Presidente ===== */
+/* ===== Festa: Flávio Bolsonaro eleito Presidente (e uma curta, de 8 s, para alguns deputados) ===== */
 :root { --festa-verde: #009c3b; --festa-amarelo: #ffd400; --festa-azul: #002776; }
 .festa { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px;
   background: radial-gradient(circle at 50% 42%, rgba(12, 44, 96, .62), rgba(4, 12, 30, .9)); }
@@ -375,7 +375,10 @@ footer a { color: var(--accent-ink); }
 .festa-fechar { margin-top: 1.2em; font-size: clamp(13px, 1.3vw, 18px); background: var(--neutral-bg); color: var(--ink-2); border: 0; border-radius: 999px; padding: .55em 1.4em; min-height: 0; cursor: pointer; }
 .festa-fechar:hover { background: var(--line); }
 .btn-festa { font-size: 12.5px; font-weight: 800; min-height: 0; padding: 6px 12px; border-radius: 999px; background: var(--festa-verde); color: var(--surface); border: 0; cursor: pointer; }
+.festa.curta .festa-card::after { content: ""; position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--festa-verde);
+  transform-origin: left; animation: festaTempo 8s linear forwards; }
 @keyframes festaEntra { from { transform: scale(.6) translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes festaTempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .festa-card { animation: none; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -468,7 +471,7 @@ footer a { color: var(--accent-ink); }
   <div class="festa-card">
     <div class="festa-eyebrow">Eleições 2026 · 1º turno</div>
     <div class="festa-nome" id="festa-nome">Flávio Bolsonaro</div>
-    <div class="festa-titulo">ELEITO PRESIDENTE DO BRASIL</div>
+    <div class="festa-titulo" id="festa-titulo">ELEITO PRESIDENTE DO BRASIL</div>
     <div class="festa-num" id="festa-num"></div>
     <div class="festa-previa" id="festa-previa" hidden>Prévia: a festa de verdade só aparece quando o TSE confirmar a eleição.</div>
     <button type="button" class="festa-fechar" id="festa-fechar">Fechar</button>
@@ -730,41 +733,78 @@ function duelo(res, onde) {
   const pp = (toNum(a.pvap) - toNum(b.pvap)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return `<div class="duelo"><span class="duelo-onde">${onde} · 1º × 2º</span><span><b>${titulo(a.nmu)}</b> ${fmt(a.vap)} × <b>${titulo(b.nmu)}</b> ${fmt(b.vap)}</span><span class="duelo-dif">diferença de <b>${fmt(a.vap - b.vap)}</b> votos (${pp} p.p.)</span></div>`;
 }
-// ===== Festa: só quando o TSE marcar Flávio Bolsonaro (nº 22) como eleito Presidente =====
+// ===== Festa: só quando o TSE marcar como eleito. Flávio Bolsonaro (nº 22) ganha a festa grande (45 s);
+// os deputados abaixo ganham uma curta (8 s). Cada um aparece uma vez só em cada aparelho; se vierem
+// vários juntos, entram em fila, um depois do outro.
 const FESTA_NUMERO = '22';
+const TITULO_PRESIDENTE = 'ELEITO PRESIDENTE DO BRASIL';
+const FESTA_DEPUTADOS = [
+  { chave: 'uf-6', numero: '2020', titulo: 'ELEITA DEPUTADA FEDERAL · SP' },   // Renata Abreu
+  { chave: 'uf-6', numero: '2007', titulo: 'ELEITO DEPUTADO FEDERAL · SP' },   // Felipe Becari
+  { chave: 'mg-6', numero: '2275', titulo: 'ELEITO DEPUTADO FEDERAL · MG' },   // Thiago Ganem
+  { chave: 'uf-7', numero: '40211', titulo: 'ELEITO DEPUTADO ESTADUAL · SP' }, // Valdomiro Lopes
+];
+// Prévia: '#festa' mostra a do Presidente; '#festa-deputados' mostra as dos deputados.
 const PREVIA_FESTA = location.hash.includes('festa');
-let festaRodando = false, festaTimer = null, previaMostrada = false;
-const bolsonaroEleito = () => { const g = pega('br-1'), c = g && g.mapa[FESTA_NUMERO]; return c && situacao(c, g.temVotos)[1] === 'good' ? c : null; };
+let festaRodando = false, festaTimer = null, previaMostrada = false, festaAtual = null, festaGeracao = 0;
+const filaFesta = [];
+const eleitoEm = (chave, numero) => { const r = pega(chave), c = r && r.mapa[numero]; return c && situacao(c, r.temVotos)[1] === 'good' ? c : null; };
+const bolsonaroEleito = () => eleitoEm('br-1', FESTA_NUMERO);
 function verificarFesta() {
-  const g = pega('br-1');
-  if (PREVIA_FESTA && !previaMostrada && g) { previaMostrada = true; mostrarFesta(g.mapa[FESTA_NUMERO], g, true); return; }
-  const c = bolsonaroEleito();
-  if (!c) return;
-  const chave = 'apuracao-festa-22' + SUF;
-  if (guardado(chave, '') === '1') return;   // uma vez só em cada aparelho
-  guardar(chave, '1');
-  mostrarFesta(c, g, false);
+  if (PREVIA_FESTA) {
+    if (previaMostrada) return;
+    if (location.hash.includes('deputados')) {
+      if (!FESTA_DEPUTADOS.every(d => pega(d.chave))) return;   // espera os arquivos chegarem
+      for (const d of FESTA_DEPUTADOS) filaFesta.push({ c: pega(d.chave).mapa[d.numero], titulo: d.titulo, curta: true, previa: true });
+    } else {
+      const g = pega('br-1');
+      if (!g) return;
+      filaFesta.push({ c: g.mapa[FESTA_NUMERO], titulo: TITULO_PRESIDENTE, previa: true });
+    }
+    previaMostrada = true;
+    proximaFesta();
+    return;
+  }
+  const quem = [{ chave: 'br-1', numero: FESTA_NUMERO, titulo: TITULO_PRESIDENTE }].concat(FESTA_DEPUTADOS.map(d => ({ ...d, curta: true })));
+  for (const q of quem) {
+    const c = eleitoEm(q.chave, q.numero), marca = 'apuracao-festa-' + q.numero + SUF;
+    if (!c || guardado(marca, '') === '1' || filaFesta.some(f => f.marca === marca) || (festaAtual && festaAtual.marca === marca)) continue;
+    filaFesta.push({ c, titulo: q.titulo, curta: q.curta, marca });
+  }
+  proximaFesta();
 }
-function mostrarFesta(c, g, previa) {
+function proximaFesta() {
+  if (!festaRodando && filaFesta.length) mostrarFesta(filaFesta.shift());
+}
+function mostrarFesta(f) {
   if (festaRodando) return;
   festaRodando = true;
+  festaAtual = f;
+  if (f.marca) guardar(f.marca, '1');   // marca só quando aparece de fato
+  const c = f.c, dur = f.curta ? 8000 : 45000;
   $('festa-nome').textContent = c ? titulo(c.nmu).replace(/^Flavio/, 'Flávio') : 'Flávio Bolsonaro';
+  $('festa-titulo').textContent = f.titulo;
   $('festa-num').innerHTML = c ? `<b>${c.pvap}%</b> dos votos válidos · <b>${fmt(c.vap)}</b> votos` : '';
-  $('festa-previa').hidden = !previa;
+  $('festa-previa').hidden = !f.previa;
+  $('festa').classList.toggle('curta', !!f.curta);
   $('festa').hidden = false;
   $('festa-fechar').focus({ preventScroll: true });
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) animarFesta();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) animarFesta(dur);
   clearTimeout(festaTimer);
-  festaTimer = setTimeout(fecharFesta, 45000);
+  festaTimer = setTimeout(fecharFesta, dur);
 }
 function fecharFesta() {
   festaRodando = false;
+  festaAtual = null;
   clearTimeout(festaTimer);
   $('festa').hidden = true;
+  if (filaFesta.length) setTimeout(proximaFesta, 700);
 }
 // Balões subindo, fogos estourando e confete verde e amarelo (canvas).
-function animarFesta() {
+function animarFesta(dur) {
   const cv = $('festa-canvas'), ctx = cv.getContext('2d');
+  const minha = ++festaGeracao;   // uma festa nova encerra o desenho da anterior
+  const curta = dur < 20000, ritmo = curta ? 1.8 : 1;   // na curta, balões sobem mais rápido para dar tempo
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   let W = 0, H = 0;
   const medir = () => { W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
@@ -775,18 +815,19 @@ function animarFesta() {
   const confete = [], baloes = [], fogos = [], faiscas = [];
   const novoConfete = (topo) => confete.push({ x: Math.random() * W, y: topo ? -20 - Math.random() * H * 0.5 : -20, w: (6 + Math.random() * 6) * escala, h: (10 + Math.random() * 8) * escala,
     vy: (1.6 + Math.random() * 2.2) * escala, vx: (Math.random() - .5) * 1.2, rot: Math.random() * 6, vr: (Math.random() - .5) * .25, cor: cor(), fase: Math.random() * 6 });
-  const novoBalao = () => baloes.push({ x: Math.random() * W, y: H + 60 * escala, r: (22 + Math.random() * 16) * escala, vy: (1.1 + Math.random() * 1.1) * escala, fase: Math.random() * 6, cor: ['#009c3b', '#ffd400', '#2a78d6', '#3cc46b'][Math.floor(Math.random() * 4)] });
+  const novoBalao = (y) => baloes.push({ x: Math.random() * W, y: y == null ? H + 60 * escala : y, r: (22 + Math.random() * 16) * escala, vy: (1.1 + Math.random() * 1.1) * escala * ritmo, fase: Math.random() * 6, cor: ['#009c3b', '#ffd400', '#2a78d6', '#3cc46b'][Math.floor(Math.random() * 4)] });
   const novoFogo = () => fogos.push({ x: W * (.15 + Math.random() * .7), y: H + 10, vy: -(8 + Math.random() * 4) * Math.sqrt(H / 800), alvo: H * (.12 + Math.random() * .3), cor: cor() });
   for (let i = 0; i < 140; i++) novoConfete(true);
+  if (curta) for (let i = 0; i < 6; i++) novoBalao(H * (.55 + Math.random() * .45));
   const inicio = performance.now();
   let ultimoBalao = 0, ultimoFogo = 0;
   function quadro(t) {
-    if (!festaRodando) { ctx.clearRect(0, 0, W, H); removeEventListener('resize', medir); return; }
+    if (!festaRodando || minha !== festaGeracao) { if (minha === festaGeracao) ctx.clearRect(0, 0, W, H); removeEventListener('resize', medir); return; }
     const dt = t - inicio;
     ctx.clearRect(0, 0, W, H);
-    if (dt < 30000 && confete.length < 260) for (let i = 0; i < 3; i++) novoConfete(false);
-    if (dt < 32000 && t - ultimoBalao > 450) { novoBalao(); ultimoBalao = t; }
-    if (dt < 38000 && t - ultimoFogo > 650) { novoFogo(); if (Math.random() < .4) novoFogo(); ultimoFogo = t; }
+    if (dt < dur * .66 && confete.length < 260) for (let i = 0; i < 3; i++) novoConfete(false);
+    if (dt < dur * .7 && t - ultimoBalao > 450 / ritmo) { novoBalao(); ultimoBalao = t; }
+    if (dt < dur * .84 && t - ultimoFogo > 650 / ritmo) { novoFogo(); if (Math.random() < .4) novoFogo(); ultimoFogo = t; }
     // balões
     for (let i = baloes.length - 1; i >= 0; i--) {
       const b = baloes[i]; b.y -= b.vy; b.fase += .03; const x = b.x + Math.sin(b.fase) * 12 * escala;
@@ -1516,7 +1557,7 @@ $('tvm-full').addEventListener('click', telaCheia);
 $('tvm-sair').addEventListener('click', sairTV);
 $('tvm-atualizar').addEventListener('click', atualizar);
 $('festa-fechar').addEventListener('click', fecharFesta);
-document.addEventListener('click', (ev) => { if (ev.target.closest('#btn-festa')) { const g = pega('br-1'); mostrarFesta(bolsonaroEleito(), g, false); } });
+document.addEventListener('click', (ev) => { if (ev.target.closest('#btn-festa') && bolsonaroEleito()) mostrarFesta({ c: bolsonaroEleito(), titulo: TITULO_PRESIDENTE }); });
 $('tvm-telas').addEventListener('click', (ev) => {
   if (ev.target.closest('[data-girar]')) { alternarGiro(); return; }
   const b = ev.target.closest('[data-tela]'); if (b) irTela(Number(b.dataset.tela));
