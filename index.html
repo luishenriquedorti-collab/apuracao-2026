@@ -29,6 +29,7 @@
   --warn: #8a5a00;  --warn-bg: #fff3d9;  --warn-dot: #fab219;
   --bad: #a33b3b;   --bad-bg: #fcecec;
   --neutral: #6b7486; --neutral-bg: #f0f2f6;
+  --fav: #f2a900; --fav-bg: #fff8e6;
   --shadow: 0 1px 2px rgba(28, 36, 51, .04), 0 6px 24px rgba(28, 36, 51, .06);
   --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: light;
@@ -131,6 +132,14 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .pill.warn { background: var(--warn-bg); color: var(--warn); }
 .pill.warn::before { background: var(--warn-dot); opacity: 1; }
 .pill.bad { background: var(--bad-bg); color: var(--bad); }
+.c-actions { display: flex; align-items: center; gap: 4px; flex: none; }
+.star { display: grid; place-items: center; width: 36px; height: 36px; min-height: 0; padding: 0; border-radius: 10px; background: transparent; color: var(--muted); flex: none; }
+.star:hover { background: var(--fav-bg); color: var(--fav); }
+.star svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.star[aria-pressed="true"] { color: var(--fav); }
+.star[aria-pressed="true"] svg { fill: var(--fav); }
+.cand.fav, .m-row.fav { background: var(--fav-bg); margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; }
+.cand.fav + .cand, .m-row.fav + .m-row { border-top-color: transparent; }
 .extra { margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .extra-title { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .extra .cand:first-child { border-top: 0; }
@@ -143,7 +152,8 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .m-row.lead .rank { background: var(--accent); color: var(--surface); }
 .m-row.lead .c-bar span { background: var(--accent); }
 .m-main { display: grid; gap: 6px; min-width: 0; }
-.m-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.m-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.m-right { display: flex; align-items: center; gap: 2px; flex: none; }
 .m-name { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
 .m-votes { font-weight: 800; font-size: 18px; letter-spacing: -.01em; white-space: nowrap; }
 .m-sub { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--muted); font-weight: 500; }
@@ -286,6 +296,15 @@ const DEMO = location.hash === '#demo';
 const guardado = (k, padrao) => { try { return localStorage.getItem(k) || padrao; } catch (e) { return padrao; } };
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 let cidade = guardado('apuracao-cidade', CIDADE_PADRAO);
+// Favoritos: de cada pessoa, guardados só no navegador dela. Chave = cargo-número.
+let favoritos = new Set();
+try { favoritos = new Set(JSON.parse(guardado('apuracao-favoritos', '[]'))); } catch (e) {}
+const ehFav = (cargo, numero) => favoritos.has(cargo + '-' + numero);
+const ESTRELA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.55 5.2 5.7.83-4.13 4.02.98 5.68L12 16.65l-5.1 2.68.98-5.68L3.75 9.63l5.7-.83z"/></svg>';
+function botaoFav(cargo, numero, nome) {
+  const on = ehFav(cargo, numero);
+  return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${ESTRELA}</button>`;
+}
 let aba = guardado('apuracao-aba', 'dep') === 'maj' ? 'maj' : 'dep';
 let municipios = [];
 const dados = {};            // chave -> { res, cidade, em }
@@ -376,17 +395,17 @@ function situacao(c, temVotos) {
   return [temVotos ? 'Em apuração' : 'Aguardando', ''];
 }
 
-function cartaoDeputado(nome, numero, uf, mu, max) {
+function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
   const meta = c ? `<b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `<b>${numero}</b>`;
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
   const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
-  return `<li class="cand">
+  return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}">
     <div class="c-top">
       <div><div class="c-name">${titulo(nome)}</div><div class="c-meta">${meta}</div></div>
-      <span class="pill ${cls}">${txt}</span>
+      <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(cargo, numero, titulo(nome))}</div>
     </div>
     <div class="c-nums">
       <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small></div>
@@ -397,9 +416,10 @@ function cartaoDeputado(nome, numero, uf, mu, max) {
   </li>`;
 }
 
-function ordenar(lista, uf) {
-  if (!uf || !uf.temVotos) return lista;
-  return [...lista].sort((a, b) => ((uf.mapa[b[1]] || {}).vap || 0) - ((uf.mapa[a[1]] || {}).vap || 0));
+// Favoritos primeiro; depois por votos (antes da apuração, na ordem da planilha).
+function ordenar(cargo, lista, uf) {
+  const votos = (n) => uf && uf.temVotos ? ((uf.mapa[n] || {}).vap || 0) : 0;
+  return [...lista].sort((a, b) => (ehFav(cargo, b[1]) - ehFav(cargo, a[1])) || (votos(b[1]) - votos(a[1])));
 }
 
 function renderDeputados() {
@@ -413,10 +433,10 @@ function renderDeputados() {
         <div><h2>${cfg.titulo}</h2><div class="vagas">${uf && uf.vagas ? uf.vagas + ' vagas em SP' : ''}</div></div>
         <button type="button" class="btn-ghost" data-copiar="${cd}">Copiar para a planilha</button>
       </div>
-      <ul class="list">${ordenar(cfg.principais, uf).map(([n, num]) => cartaoDeputado(n, num, uf, mu, max)).join('')}</ul>
+      <ul class="list">${ordenar(cd, cfg.principais, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')}</ul>
       <div class="extra">
         <div class="extra-title">Apenas para conhecimento</div>
-        <ul class="list">${ordenar(cfg.conhecimento, uf).map(([n, num]) => cartaoDeputado(n, num, uf, mu, max)).join('')}</ul>
+        <ul class="list">${ordenar(cd, cfg.conhecimento, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')}</ul>
       </div>`;
   }
 }
@@ -431,14 +451,15 @@ function renderMajoritarios() {
       corpo = `<p class="vagas" style="padding:12px 0 16px">Carregando…</p>`;
     } else {
       const max = mu.todos.length ? mu.todos[0].vap : 0;
-      corpo = `<ul class="list">${mu.todos.map((c, i) => {
-        const lider = mu.temVotos && i === 0;
+      const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
+      corpo = `<ul class="list">${lista.map((c) => {
+        const lider = mu.temVotos && c.pos === 1;
         const largura = max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
         const extra = c.vice && cfg.vice ? ` · vice: ${titulo(c.vice)}` : '';
-        return `<li class="m-row${lider ? ' lead' : ''}">
+        return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
           <span class="rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
           <div class="m-main">
-            <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-votes">${fmt(c.vap)}</span></div>
+            <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-right"><span class="m-votes">${fmt(c.vap)}</span>${botaoFav(cd, c.n, titulo(c.nmu))}</span></div>
             <div class="m-sub"><span>${c.n} · ${c.partido}${extra}</span><b>${c.pvap}%</b></div>
             <div class="c-bar" title="${fmt(c.vap)} votos em ${nomeCidade()}"><span style="width:${largura}%"></span></div>
           </div>
@@ -567,6 +588,16 @@ function trocarAba(nova) {
 }
 
 document.addEventListener('click', (ev) => {
+  const fav = ev.target.closest('[data-fav]');
+  if (fav) {
+    const k = fav.dataset.fav;
+    if (favoritos.has(k)) favoritos.delete(k); else favoritos.add(k);
+    guardar('apuracao-favoritos', JSON.stringify([...favoritos]));
+    render();
+    const novo = document.querySelector(`[data-fav="${k}"]`);
+    if (novo) novo.focus({ preventScroll: true });
+    return;
+  }
   const copia = ev.target.closest('[data-copiar]');
   if (copia) copiar(copia.dataset.copiar, copia);
   const t = ev.target.closest('.tab');
