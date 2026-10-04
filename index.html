@@ -272,6 +272,7 @@ html.tv:not(.mexeu) .tvm-girar:not(.on) { opacity: 0; }
 .tvm-aviso .aviso { padding: .45rem .9rem; border-radius: .8rem; gap: .6rem; min-width: 0; flex: 0 1 auto; }
 .tvm-aviso .aviso-txt { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tvm-aviso .aviso-dot { width: .6rem; height: .6rem; }
+.aviso.info-tv .aviso-dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .tvm-acoes { display: flex; gap: .5rem; flex: none; opacity: 0; transition: opacity .3s; }
 html.tv.mexeu .tvm-acoes, .tvm-acoes:focus-within { opacity: 1; }
 .tvm-acoes button { font-size: .8rem; min-height: 0; padding: .4rem .8rem; border-radius: .6rem; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
@@ -478,6 +479,7 @@ const CARGOS = {
       ['EDSON DA PAIOL', '20007'], ['EDUARDO NOBREGA', '15150'], ['FABIO FARIA DE SÁ', '20520'],
       ['MARA GABRILI', '55177'], ['VALDOMIRO LOPES', '40211'],
       ['ALEXANDRE LEITE', '44250', 'fora-planilha'],   // acompanhado, mas não está na planilha
+      ['TENENTE COIMBRA', '22444', 'fora-planilha'],
     ],
     conhecimento: [['DANILO CAMPETTI', '10222'], ['ANALICE', '55455']],
   },
@@ -521,6 +523,7 @@ const ARQUIVOS = {
     { chave: 'mu-5', ele: ELE_EST, cargo: 5, nivel: 'mu' },
   ],
 };
+ARQUIVOS.dep.push({ chave: 'mu-1', ele: ELE_FED, cargo: 1, nivel: 'mu' });   // pequeno: diz se a cidade já começou a apurar
 ARQUIVOS.fav = ARQUIVOS.dep.concat(ARQUIVOS.maj);
 
 // ===== Estado =====
@@ -535,7 +538,7 @@ const ehFav = (cargo, numero) => favoritos.has(cargo + '-' + numero);
 
 // Votos no 1º turno de 2022 em Nova Granada (Dados Abertos do TSE, votacao_candidato_munzona_2022),
 // ligados pelo nome completo de registro. Chave = cargo de 2026 - número de 2026 -> [votos, cargo disputado em 2022].
-const VOTOS_2022_NG = {"7-44250":[2,"Dep. Federal"],"1-13":[5130,"Presidente"],"1-35":[0,"Dep. Federal"],"3-10":[4397,"Governador"],"3-13":[3208,"Governador"],"3-16":[4,"Presidente"],"3-80":[41,"Senador"],"5-111":[424,"Dep. Federal"],"5-160":[0,"Dep. Federal"],"5-180":[45,"Dep. Federal"],"5-222":[3,"Dep. Estadual"],"5-400":[403,"Presidente"],"6-1001":[24,"Dep. Estadual"],"6-1322":[25,"Dep. Federal"],"6-1370":[234,"Dep. Federal"],"6-2007":[45,"Dep. Federal"],"6-2019":[0,"Dep. Federal"],"6-2020":[2151,"Dep. Federal"],"6-2022":[6,"Dep. Federal"],"6-2044":[0,"Dep. Federal"],"6-2244":[383,"Dep. Federal"],"6-2247":[24,"Dep. Federal"],"6-4000":[6,"Dep. Federal"],"7-10222":[460,"Dep. Estadual"],"7-15150":[0,"Dep. Estadual"],"7-20007":[0,"Dep. Estadual"],"7-20520":[0,"Dep. Estadual"],"7-40211":[842,"Dep. Estadual"],"7-55455":[1792,"Dep. Estadual"]};
+const VOTOS_2022_NG = {"7-44250":[2,"Dep. Federal"],"7-22444":[33,"Dep. Estadual"],"1-13":[5130,"Presidente"],"1-35":[0,"Dep. Federal"],"3-10":[4397,"Governador"],"3-13":[3208,"Governador"],"3-16":[4,"Presidente"],"3-80":[41,"Senador"],"5-111":[424,"Dep. Federal"],"5-160":[0,"Dep. Federal"],"5-180":[45,"Dep. Federal"],"5-222":[3,"Dep. Estadual"],"5-400":[403,"Presidente"],"6-1001":[24,"Dep. Estadual"],"6-1322":[25,"Dep. Federal"],"6-1370":[234,"Dep. Federal"],"6-2007":[45,"Dep. Federal"],"6-2019":[0,"Dep. Federal"],"6-2020":[2151,"Dep. Federal"],"6-2022":[6,"Dep. Federal"],"6-2044":[0,"Dep. Federal"],"6-2244":[383,"Dep. Federal"],"6-2247":[24,"Dep. Federal"],"6-4000":[6,"Dep. Federal"],"7-10222":[460,"Dep. Estadual"],"7-15150":[0,"Dep. Estadual"],"7-20007":[0,"Dep. Estadual"],"7-20520":[0,"Dep. Estadual"],"7-40211":[842,"Dep. Estadual"],"7-55455":[1792,"Dep. Estadual"]};
 const CARGO_2026 = { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Dep. Federal', 7: 'Dep. Estadual' };
 function linha2022(cargo, numero, sufixo) {
   if (cidade !== CIDADE_PADRAO) return '';
@@ -1045,7 +1048,8 @@ function renderTV() {
   $('tvm-telas').className = 'tvm-telas' + (girarTV ? ' girando' : '');
   $('tvm-telas').innerHTML = telas.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo" style="animation-delay:-${passou.toFixed(1)}s"></span></button>`).join('')
     + `<button type="button" class="tvm-girar${girarTV ? ' on' : ''}" data-girar title="${girarTV ? 'Parar de trocar de tela sozinho' : 'Trocar de tela sozinho a cada ' + TEMPO_TELA + ' segundos'}">${girarTV ? '⏸ Parar de alternar' : '▶ Alternar sozinho'}</button>`;
-  $('tvm-aviso').innerHTML = avisos.slice(0, 2).map(a => `<div class="aviso ${a.tipo}"><span class="aviso-dot"></span><div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b> · ${a.cargo}</div></div>`).join('');
+  const incompleta = cidadeIncompleta() ? `<div class="aviso info-tv"><span class="aviso-dot"></span><div class="aviso-txt"><b>${nomeCidade()}:</b> TSE ainda não publicou os votos da cidade para ${cidadeIncompleta().split(' para ').pop().split('.')[0]}</div></div>` : '';
+  $('tvm-aviso').innerHTML = incompleta + avisos.slice(0, incompleta ? 1 : 2).map(a => `<div class="aviso ${a.tipo}"><span class="aviso-dot"></span><div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b> · ${a.cargo}</div></div>`).join('');
   const body = $('tvm-body');
   body.className = 'tvm-body ' + tela;
   body.innerHTML = tela === 'dep'
@@ -1200,6 +1204,17 @@ function preencherAndamento(id, res) {
   $('info-' + id).innerHTML = info;
 }
 
+// O TSE publica os arquivos por cidade de cada eleição no seu ritmo: às vezes Presidente já saiu
+// e Governador/Senado/Deputados da cidade ainda estão zerados, mesmo com urnas apuradas.
+function cidadeIncompleta() {
+  const pres = pega('mu-1');
+  if (!pres || toNum(pres.pst) === 0) return '';
+  const faltam = [['mu-6', 'Deputado Federal'], ['mu-7', 'Deputado Estadual'], ['mu-3', 'Governador'], ['mu-5', 'Senador']]
+    .filter(([k]) => { const d = pega(k); return d && toNum(d.pst) === 0; }).map(([, n]) => n);
+  if (!faltam.length) return '';
+  return `${nomeCidade()}: o TSE já publicou ${pres.pst}% das urnas para Presidente, mas ainda não publicou os votos da cidade para ${faltam.join(', ').replace(/, ([^,]*)$/, ' e $1')}. Eles aparecem aqui sozinhos assim que o TSE publicar.`;
+}
+
 function mostrarAviso(erros) {
   const ban = $('banner');
   const uf = pega('uf-6') || pega('uf-3');
@@ -1209,6 +1224,9 @@ function mostrarAviso(erros) {
   } else if (DEMO) {
     ban.className = 'banner info';
     ban.textContent = 'Modo demonstração: os votos mostrados são fictícios. Tire o #demo do endereço para ver os dados reais.';
+  } else if (cidadeIncompleta()) {
+    ban.className = 'banner info';
+    ban.textContent = cidadeIncompleta();
   } else if (uf && !uf.temVotos) {
     ban.className = 'banner info';
     ban.textContent = 'A apuração ainda não começou. Os votos aparecem depois que as urnas fecham, às 17h (horário de Brasília). A página atualiza sozinha.';
@@ -1231,7 +1249,8 @@ async function atualizar() {
   ciclo += 1;
   // Na aba de Presidente/Governo/Senado, confere os deputados a cada 3 atualizações (para os avisos de situação).
   const lista = modoTV ? ARQUIVOS.dep.concat(ARQUIVOS.maj) : ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel !== 'mu') : []);
-  await Promise.all(lista.map(async (a) => {
+  const unicos = lista.filter((a, i) => lista.findIndex(b => b.chave === a.chave) === i);
+  await Promise.all(unicos.map(async (a) => {
     try {
       let res = lerResultado(await getJSON(caminho(a)));
       if (DEMO) res = simular(res, a.nivel);
