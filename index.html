@@ -756,7 +756,7 @@ function renderMajoritarios() {
     } else {
       const max = mu.todos.length ? mu.todos[0].vap : 0;
       const g = pega(cfg.geral);
-      const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
+      const lista = ordemMaj(cd, mu, g);
       corpo = `<ul class="list">${lista.map((c) => linhaMajoritario(cd, cfg, c, mu, g, max)).join('')}</ul>
       <div class="totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
     }
@@ -764,6 +764,13 @@ function renderMajoritarios() {
       <div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${cfg.sub}</div></div></div>
       ${corpo}`;
   }
+}
+// Ordem dos candidatos: favoritos primeiro; depois pelos votos na cidade. Enquanto a cidade ainda não
+// tem votos apurados, segue a ordem do resultado geral (Brasil ou SP), em vez de ordem alfabética.
+function ordemMaj(cd, mu, g) {
+  const usarGeral = !mu.temVotos && g && g.temVotos;
+  const pos = (c) => usarGeral ? ((g.mapa[c.n] || {}).pos || 999) : c.pos;
+  return [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (pos(a) - pos(b)));
 }
 function linhaMajoritario(cd, cfg, c, mu, g, max) {
         const lider = mu.temVotos && c.pos === 1;
@@ -810,7 +817,7 @@ function renderFavoritos() {
     if (!marcados.length) continue;
     if (!mu) { grupos.push([cfg.titulo, cfg.sub, '<li class="vagas" style="padding:12px 0">Carregando…</li>']); continue; }
     const g = pega(cfg.geral), max = mu.todos.length ? mu.todos[0].vap : 0;
-    const lista = mu.todos.filter(c => marcados.includes(c.n));
+    const lista = ordemMaj(cd, mu, g).filter(c => marcados.includes(c.n));
     grupos.push([cfg.titulo, cfg.sub, lista.map(c => linhaMajoritario(cd, cfg, c, mu, g, max)).join('')]);
   }
   $('painel-fav').innerHTML = grupos.length
@@ -876,7 +883,7 @@ function cartaoTVMajoritario(cd) {
   const onde = cfg.onde === 'SP' ? 'São Paulo' : 'Brasil';
   let corpo = '<div class="tvm-vazio">Carregando…</div>';
   if (mu) {
-    const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
+    const lista = ordemMaj(cd, mu, g);
     corpo = `<div class="tvm-rows">${lista.map(c => linhaTVMaj(cd, c, mu, g)).join('')}</div>
     <div class="tvm-totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
   }
@@ -912,7 +919,7 @@ function htmlTVFavoritos() {
     const marcados = [...favoritos].filter(k => k.startsWith(cd + '-')).map(k => k.slice(cd.length + 1));
     if (!marcados.length) continue;
     const mu = pega('mu-' + cd), g = pega(MAJORITARIOS[cd].geral);
-    partes.push(cartaoTVMajMoldura(cd, mu ? `<div class="tvm-rows">${mu.todos.filter(c => marcados.includes(c.n)).map(c => linhaTVMaj(cd, c, mu, g)).join('')}</div>` : '<div class="tvm-vazio">Carregando…</div>'));
+    partes.push(cartaoTVMajMoldura(cd, mu ? `<div class="tvm-rows">${ordemMaj(cd, mu, g).filter(c => marcados.includes(c.n)).map(c => linhaTVMaj(cd, c, mu, g)).join('')}</div>` : '<div class="tvm-vazio">Carregando…</div>'));
   }
   return partes.join('');
 }
