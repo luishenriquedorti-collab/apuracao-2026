@@ -75,23 +75,28 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Andamento e controles */
-.progress { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-.prog { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 18px; display: grid; gap: 10px; }
-.prog-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.prog-label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
-.prog-value { font-size: 26px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.progress { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.prog { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 14px 18px 16px; display: grid; gap: 8px; min-width: 0; }
+.prog-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 2px 12px; }
+.prog-label { display: grid; font-size: 14px; color: var(--ink); font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.prog-label small { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.prog-value { font-size: 26px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; line-height: 1.15; }
 .prog-value small { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 2px; }
 .track { height: 8px; border-radius: 4px; background: var(--bar-track); overflow: hidden; }
 .fill { height: 100%; width: 0; border-radius: 4px; background: var(--accent); transition: width .8s ease; }
 
-.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.controls { display: flex; gap: 10px; align-items: stretch; }
+.controls .field { flex: 1 1 auto; }
 .field { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 4px 4px 12px; min-width: 0; }
 .field label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 select { font: inherit; font-weight: 600; color: var(--ink); border: 0; background: transparent; padding: 6px 4px; min-height: 34px; min-width: 0; max-width: 240px; }
 button { font: inherit; font-weight: 700; font-size: 14px; border-radius: 12px; cursor: pointer; min-height: 40px; padding: 8px 16px; border: 1px solid transparent; }
-.btn-primary { background: var(--accent); color: var(--surface); }
-.btn-primary:hover { background: var(--accent-ink); }
-.btn-primary:disabled { opacity: .6; cursor: default; }
+.btn-refresh { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; background: var(--surface); border-color: var(--line); color: var(--accent-ink); }
+.btn-refresh:hover { border-color: var(--bar); background: var(--accent-soft); }
+.btn-refresh:disabled { cursor: default; }
+.btn-refresh svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn-refresh[aria-busy="true"] svg { animation: girar .9s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
 .btn-ghost { background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; min-height: 34px; padding: 6px 12px; border-radius: 10px; }
 .btn-ghost:hover { border-color: var(--bar); }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -199,20 +204,20 @@ footer a { color: var(--accent-ink); }
 @media (max-width: 560px) {
   .wrap { padding-block: 18px 40px; gap: 14px; }
   .card { padding: 16px 16px 4px; border-radius: 16px; }
-  .controls .btn-primary { flex: 1 1 auto; }
-  .field { flex: 1 1 100%; }
   select { max-width: none; flex: 1; }
   .tab { padding: 8px 10px; gap: 8px; min-height: 54px; }
   .tab svg { width: 20px; height: 20px; }
   .tab-title { font-size: 13.5px; }
   .tab-sub { font-size: 11px; }
-  .prog { padding: 12px 14px; }
+  .progress { gap: 10px; }
+  .prog { padding: 12px 14px 14px; border-radius: 14px; }
+  .prog-label { font-size: 13px; }
   .prog-value { font-size: 22px; }
 }
-@media (max-width: 360px) { .tab svg { display: none; } }
+@media (max-width: 360px) { .tab svg { display: none; } .btn-refresh span { display: none; } .field label { display: none; } .pill { font-size: 11px; padding: 3px 8px; gap: 5px; } .c-actions { gap: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .fill, .c-bar span, .tab { transition: none; }
-  .live.ok .dot { animation: none; }
+  .live.ok .dot, .btn-refresh[aria-busy="true"] svg { animation: none; }
 }
 </style>
 </head>
@@ -241,18 +246,18 @@ footer a { color: var(--accent-ink); }
 
   <div class="progress">
     <div class="prog">
-      <div class="prog-head"><span class="prog-label">Urnas apuradas em SP</span><span class="prog-value" id="pst-uf">—</span></div>
+      <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>São Paulo</span><span class="prog-value" id="pst-uf">—</span></div>
       <div class="track"><div class="fill" id="bar-uf"></div></div>
     </div>
     <div class="prog">
-      <div class="prog-head"><span class="prog-label">Urnas apuradas em <span id="city-name-m">—</span></span><span class="prog-value" id="pst-mu">—</span></div>
+      <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small><span id="city-name-m">—</span></span><span class="prog-value" id="pst-mu">—</span></div>
       <div class="track"><div class="fill" id="bar-mu"></div></div>
     </div>
   </div>
 
   <div class="controls">
     <div class="field"><label for="city">Cidade</label><select id="city"><option>Carregando…</option></select></div>
-    <button id="refresh" class="btn-primary" type="button">Atualizar agora</button>
+    <button id="refresh" class="btn-refresh" type="button" title="Buscar agora (a página também atualiza sozinha a cada 60 segundos)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg><span>Atualizar</span></button>
   </div>
   <div id="banner" class="banner" hidden></div>
   <div id="avisos" class="avisos" aria-live="polite" hidden></div>
@@ -454,7 +459,7 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
-  const meta = c ? `nº <b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `nº <b>${numero}</b>`;
+  const meta = c ? `nº <b>${numero}</b> · ${c.partido}` : `nº <b>${numero}</b>`;
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
   const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
   const av = avisoDe(cargo, numero);
@@ -502,7 +507,9 @@ function linhaGeral(cfg, g, numero) {
   const gc = g && g.mapa[numero];
   const [txt, cls] = g ? situacao(gc, g.temVotos) : ['Carregando…', ''];
   const total = gc ? `<b>${fmt(gc.vap)}</b> · ${gc.pvap}%${g.temVotos ? ' · ' + gc.pos + 'º' : ''}` : '<b>—</b>';
-  return `<div class="m-geral"><span>${cfg.onde === 'SP' ? 'Em SP' : 'No Brasil'}: ${total}</span><span class="pill ${cls}">${txt}</span></div>`;
+  // Selo só quando há resultado (Eleito, 2º turno, Não eleito); "Em apuração" em todas as linhas seria só ruído.
+  const neutro = /^(Em apuração|Aguardando|Carregando…)$/.test(txt);
+  return `<div class="m-geral"><span>${cfg.onde === 'SP' ? 'Em SP' : 'No Brasil'}: ${total}</span>${neutro ? '' : `<span class="pill ${cls}">${txt}</span>`}</div>`;
 }
 function renderMajoritarios() {
   for (const cd of Object.keys(MAJORITARIOS)) {
@@ -631,7 +638,7 @@ async function atualizar() {
   buscando = true;
   pendente = false;
   $('refresh').disabled = true;
-  $('refresh').textContent = 'Atualizando…';
+  $('refresh').setAttribute('aria-busy', 'true');
   const erros = [];
   const cid = cidade;
   ciclo += 1;
@@ -656,7 +663,7 @@ async function atualizar() {
   mostrarAvisosSituacao();
   buscando = false;
   $('refresh').disabled = false;
-  $('refresh').textContent = 'Atualizar agora';
+  $('refresh').removeAttribute('aria-busy');
   contador = INTERVALO;
   tick();
   if (pendente) atualizar();
