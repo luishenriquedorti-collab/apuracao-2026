@@ -86,7 +86,7 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
 .fill { height: 100%; width: 0; border-radius: 4px; background: var(--accent); transition: width .8s ease; }
 
 .controls { display: flex; gap: 10px; align-items: stretch; }
-.controls .field { flex: 1 1 auto; }
+.controls .field { flex: 0 1 380px; }
 .field { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 4px 4px 12px; min-width: 0; }
 .field label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 select { font: inherit; font-weight: 600; color: var(--ink); border: 0; background: transparent; padding: 6px 4px; min-height: 34px; min-width: 0; max-width: 240px; }
@@ -204,6 +204,7 @@ footer a { color: var(--accent-ink); }
 @media (max-width: 560px) {
   .wrap { padding-block: 18px 40px; gap: 14px; }
   .card { padding: 16px 16px 4px; border-radius: 16px; }
+  .controls .field { flex: 1 1 auto; }
   select { max-width: none; flex: 1; }
   .tab { padding: 8px 10px; gap: 8px; min-height: 54px; }
   .tab svg { width: 20px; height: 20px; }
