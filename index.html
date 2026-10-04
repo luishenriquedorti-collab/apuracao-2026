@@ -208,6 +208,10 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .pos-partido { font-size: 12px; color: var(--muted); font-weight: 500; }
 .pos-partido b { color: var(--ink-2); }
 .pos-partido.dentro, .pos-partido.dentro b { color: var(--good); }
+.dif-lista { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 6px; }
+.dif-lista span { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 8px; background: var(--neutral-bg); color: var(--ink-2); }
+.dif-lista .dl-mais b { color: var(--good); }
+.dif-lista .dl-menos b { color: var(--bad); }
 .dif.mais { color: var(--good); }
 .duelos { display: grid; gap: 6px; margin: 8px 0 6px; }
 .duelo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; background: var(--accent-soft); border-radius: 12px; padding: 9px 12px; font-size: 13.5px; color: var(--ink); }
@@ -316,6 +320,8 @@ html.tv:not(.mexeu) .tvm-row .star { cursor: none; }
 .tvm-num small { display: block; font-size: .72rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tvm-num small b { color: var(--ink-2); }
 .tvm-num small .tv-dentro { color: var(--good); font-weight: 700; }
+.tvm-num small.tv-dif { white-space: normal; }
+.tvm-num small.tv-dif b { color: var(--ink); }
 .tvm-sit { justify-self: end; }
 .tvm-sit .pill { font-size: .75rem; padding: .25rem .65rem; gap: .35rem; }
 .tvm-sit .pill::before { width: .4rem; height: .4rem; }
@@ -501,7 +507,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-04-2010';
+const VERSAO = '2026-10-04-2030';
 
 const CARGOS = {
   6: {
@@ -674,7 +680,7 @@ function lerResultado(json) {
         doPartido.forEach((d, i) => { d.posPartido = i + 1; });
       }
       daLista.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
-      daLista.forEach((d, i) => { d.posLista = i + 1; });
+      daLista.forEach((d, i) => { d.posLista = i + 1; d.daLista = daLista; });
     }
   }
   todos.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
@@ -910,6 +916,28 @@ function posPartido(c, res, tv) {
   return `<span class="pos-partido${dentro ? ' dentro' : ''}" title="${dentro ? 'Pela parcial, está dentro das vagas da ' + (c.fed ? 'federação' : 'legenda') : 'Pela parcial, está fora das vagas da ' + (c.fed ? 'federação' : 'legenda')}"><b>${c.posPartido}º</b> no ${c.partido}${fed} · ${txtVagas}</span>`;
 }
 
+// Diferença de votos para colegas da mesma lista (partido ou federação): para o de logo abaixo e para o
+// da última vaga que a legenda faz agora (ex.: Thiago Ganem 13º no PL com 22 vagas → 14º e 22º).
+function difLista(c) {
+  if (!c || !c.daLista || !c.posLista) return [];
+  const L = c.daLista, vagas = c.vagasLegenda || 0, out = [];
+  const abaixo = L[c.posLista];
+  if (abaixo) out.push({ pos: c.posLista + 1, dif: c.vap - abaixo.vap });
+  if (vagas && vagas !== c.posLista && vagas !== c.posLista + 1 && L[vagas - 1]) out.push({ pos: vagas, dif: c.vap - L[vagas - 1].vap, ultima: true });
+  return out;
+}
+function textoDifLista(c, res, tv) {
+  if (!res || !res.temVotos) return '';
+  const lista = c && (c.fed ? 'da federação' : 'do ' + c.partido);
+  const partes = difLista(c).map(d => {
+    const valor = (d.dif >= 0 ? '+' : '−') + fmt(Math.abs(d.dif));
+    const quem = `${d.pos}º${d.ultima ? (tv ? ' (últ. vaga)' : ' · última vaga ' + lista) : ''}`;
+    return tv ? `<b>${valor}</b> ${d.dif >= 0 ? 'sobre' : 'do'} ${quem}` : `<span class="${d.dif >= 0 ? 'dl-mais' : 'dl-menos'}"><b>${valor}</b> ${d.dif >= 0 ? 'sobre o' : 'do'} ${quem}</span>`;
+  });
+  if (!partes.length) return '';
+  return tv ? `<small class="tv-dif">${partes.join(' · ')}</small>` : `<span class="dif-lista">${partes.join('')}</span>`;
+}
+
 // Cor do cartão inteiro pela situação oficial: verde (eleito), amarelo (suplente / 2º turno), vermelho (não eleito).
 function classeSituacao(c, res) {
   if (!res || !c) return '';
@@ -970,7 +998,7 @@ function cartaoAliadoFora(x, res) {
       <div class="tile">
         <div class="tile-label">${x.ufNome}</div>
         <div class="tile-num"><span class="c-votes">${c ? fmt(c.vap) : '—'}</span>${selo(res, x.numero)}</div>
-        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${c && res.temVotos ? ` · <b>${c.pos}º</b> no estado` : ''}</span>${posPartido(c, res)}</div>
+        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${c && res.temVotos ? ` · <b>${c.pos}º</b> no estado` : ''}</span>${posPartido(c, res)}${textoDifLista(c, res)}</div>
       </div>
       <div class="tile">
         <div class="tile-label">Apuração em ${x.uf.toUpperCase()}</div>
@@ -1173,7 +1201,7 @@ function linhaTVFora(x, res) {
   const av = avisoDe(x.chave, x.numero);
   return `<div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
       <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
-      <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º' : ''}<span class="${c && c.posLista <= (c.vagasLegenda || 0) ? 'tv-dentro' : ''}">${posPartido(c, res, true)}</span></small></div>
+      <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º' : ''}<span class="${c && c.posLista <= (c.vagasLegenda || 0) ? 'tv-dentro' : ''}">${posPartido(c, res, true)}</span></small>${textoDifLista(c, res, true)}</div>
       <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
       <div class="tvm-sit">${situTV(c, res)}</div>
     </div>`;
