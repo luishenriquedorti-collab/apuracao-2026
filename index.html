@@ -276,6 +276,7 @@ footer a { color: var(--accent-ink); }
     <div class="grid" id="painel-dep" role="tabpanel" aria-labelledby="tab-dep">
       <section class="card" id="sec-6"></section>
       <section class="card" id="sec-7"></section>
+      <section class="card" id="sec-fora"></section>
     </div>
     <div class="grid maj" id="painel-maj" role="tabpanel" aria-labelledby="tab-maj" hidden>
       <section class="card" id="sec-1"></section>
@@ -319,6 +320,10 @@ const CARGOS = {
     conhecimento: [['DANILO CAMPETTI', '10222'], ['ANALICE', '55455']],
   },
 };
+// Aliados que disputam em outro estado: não estão na urna de SP (sem votos em Nova Granada).
+const ALIADOS_FORA = [
+  { chave: 'mg-6', uf: 'mg', ufNome: 'Minas Gerais', cargo: 6, titulo: 'Deputado Federal · MG', nome: 'THIAGO GANEM', numero: '2275' },
+];
 const MAJORITARIOS = {
   1: { titulo: 'Presidente', ele: ELE_FED, sub: 'Presidente da República', vice: 'vice', geral: 'br-1', onde: 'Brasil' },
   3: { titulo: 'Governador', ele: ELE_EST, sub: 'Governador de São Paulo', vice: 'vice', geral: 'uf-3', onde: 'SP' },
@@ -330,6 +335,7 @@ const ARQUIVOS = {
   dep: [
     { chave: 'uf-6', ele: ELE_EST, cargo: 6, nivel: 'uf' }, { chave: 'mu-6', ele: ELE_EST, cargo: 6, nivel: 'mu' },
     { chave: 'uf-7', ele: ELE_EST, cargo: 7, nivel: 'uf' }, { chave: 'mu-7', ele: ELE_EST, cargo: 7, nivel: 'mu' },
+    ...ALIADOS_FORA.map(x => ({ chave: x.chave, ele: ELE_EST, cargo: x.cargo, nivel: 'fora', uf: x.uf })),
   ],
   maj: [
     { chave: 'br-1', ele: ELE_FED, cargo: 1, nivel: 'br' },
@@ -408,7 +414,7 @@ async function getJSON(path) {
 
 function caminho(a) {
   const c = String(a.cargo).padStart(4, '0');
-  const pasta = a.nivel === 'br' ? 'br' : UF;
+  const pasta = a.nivel === 'br' ? 'br' : a.nivel === 'fora' ? a.uf : UF;
   const local = a.nivel === 'mu' ? UF + cidade : pasta;
   return `/${a.ele}/dados/${pasta}/${local}-c${c}-e00${a.ele}-u.json`;
 }
@@ -502,7 +508,47 @@ function ordenar(cargo, lista, uf) {
   return [...lista].sort((a, b) => (ehFav(cargo, b[1]) - ehFav(cargo, a[1])) || (votos(b[1]) - votos(a[1])));
 }
 
+function cartaoAliadoFora(x, res) {
+  const c = res && res.mapa[x.numero];
+  const [txt, cls] = res ? situacao(c, res.temVotos) : ['Carregando…', ''];
+  const av = avisoDe(x.chave, x.numero);
+  const pst = res ? toNum(res.pst) : 0;
+  let urnas = '';
+  if (res && res.secoes && res.secoes.total) {
+    urnas = res.secoes.feitas >= res.secoes.total ? '<b>Apuração concluída</b>'
+      : `Faltam <b>${(100 - pst).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</b> · ${fmt(res.secoes.feitas)} de ${fmt(res.secoes.total)} urnas`;
+  }
+  return `<li class="cand${ehFav(x.chave, x.numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+    <div class="c-top">
+      <div><div class="c-name">${titulo(x.nome)}</div><div class="c-meta">nº <b>${x.numero}</b>${c ? ' · ' + c.partido : ''}</div></div>
+      <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
+    </div>
+    <div class="tiles">
+      <div class="tile">
+        <div class="tile-label">${x.ufNome}</div>
+        <div class="tile-num"><span class="c-votes">${c ? fmt(c.vap) : '—'}</span>${selo(res, x.numero)}</div>
+        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${c && res.temVotos ? ` · <b>${c.pos}º</b> no estado` : ''}</span></div>
+      </div>
+      <div class="tile">
+        <div class="tile-label">Apuração em ${x.uf.toUpperCase()}</div>
+        <div class="tile-num">${res ? res.pst + '%' : '—'}</div>
+        <div class="c-bar"><span style="width:${pst}%"></span></div>
+        <div class="tile-foot"><span>${urnas || '—'}</span></div>
+      </div>
+    </div>
+  </li>`;
+}
+function renderAliadosFora() {
+  $('sec-fora').hidden = ALIADOS_FORA.length === 0;
+  $('sec-fora').innerHTML = ALIADOS_FORA.map(x => {
+    const res = pega(x.chave);
+    return `<div class="card-head"><div><h2>${x.titulo}</h2><div class="vagas">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''} · não está na urna de SP</div></div></div>
+      <ul class="list">${cartaoAliadoFora(x, res)}</ul>`;
+  }).join('');
+}
+
 function renderDeputados() {
+  renderAliadosFora();
   for (const cd of Object.keys(CARGOS)) {
     const cfg = CARGOS[cd];
     const uf = pega('uf-' + cd), mu = pega('mu-' + cd);
@@ -616,9 +662,9 @@ function selo(res, numero) {
 }
 
 // Avisa quando um deputado nosso passa a Eleito ou Suplente.
-function conferirSituacoes(cargo, res) {
+function conferirSituacoes(cargo, res, lista = CARGOS[cargo].principais, tituloCargo = CARGOS[cargo].titulo) {
   let mudou = false;
-  for (const [nome, numero] of CARGOS[cargo].principais) {
+  for (const [nome, numero] of lista) {
     const c = res.mapa[numero];
     if (!c) continue;
     const sit = c.st.trim() || (c.e === 's' ? 'Eleito' : '');
@@ -628,7 +674,7 @@ function conferirSituacoes(cargo, res) {
       const tipo = /n[aã]o eleito/i.test(sit) ? '' : /eleito/i.test(sit) ? 'good' : /suplente/i.test(sit) ? 'warn' : '';
       if (antes !== undefined && tipo) {
         avisos = avisos.filter(a => a.chave !== chave);
-        avisos.unshift({ id: chave + '-' + Date.now(), chave, nome: titulo(nome), cargo: CARGOS[cargo].titulo, sit, tipo, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
+        avisos.unshift({ id: chave + '-' + Date.now(), chave, nome: titulo(nome), cargo: tituloCargo, sit, tipo, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
         avisos = avisos.slice(0, 8);
       }
       situacoesVistas[chave] = sit;
@@ -692,7 +738,7 @@ async function atualizar() {
   const cid = cidade;
   ciclo += 1;
   // Na aba de Presidente/Governo/Senado, confere os deputados a cada 3 atualizações (para os avisos de situação).
-  const lista = ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel === 'uf') : []);
+  const lista = ARQUIVOS[aba].concat(aba === 'maj' && (ciclo % 3 === 1 || !pega('uf-6')) ? ARQUIVOS.dep.filter(a => a.nivel !== 'mu') : []);
   await Promise.all(lista.map(async (a) => {
     try {
       let res = lerResultado(await getJSON(caminho(a)));
@@ -700,6 +746,7 @@ async function atualizar() {
       if (a.nivel !== 'mu' || cid === cidade) {
         calcularSubida(res, pega(a.chave));
         if (a.nivel === 'uf' && CARGOS[a.cargo]) conferirSituacoes(a.cargo, res);
+        if (a.nivel === 'fora') { const x = ALIADOS_FORA.find(y => y.chave === a.chave); conferirSituacoes(x.chave, res, [[x.nome, x.numero]], x.titulo); }
         dados[a.chave] = { res, cidade: cid, em: Date.now() };
       }
     } catch (e) {
