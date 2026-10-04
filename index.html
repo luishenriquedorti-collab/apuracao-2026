@@ -29,7 +29,7 @@
   --warn: #8a5a00;  --warn-bg: #fff3d9;  --warn-dot: #fab219;
   --bad: #a33b3b;   --bad-bg: #fcecec;
   --neutral: #6b7486; --neutral-bg: #f0f2f6;
-  --fav: #d7182a; --fav-bg: #fff1f2; --fav-ink: #ffffff;
+  --fav: #2a78d6; --fav-bg: #eef5fe;
   --shadow: 0 1px 2px rgba(28, 36, 51, .04), 0 6px 24px rgba(28, 36, 51, .06);
   --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: light;
@@ -123,6 +123,10 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .c-votes small { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 4px; }
 .c-city { font-size: 14px; color: var(--ink-2); }
 .c-city b { color: var(--ink); font-weight: 800; font-size: 16px; }
+.c-city { display: grid; gap: 2px; }
+.v22 { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.v22 b { color: var(--ink-2); font-weight: 700; font-size: 12.5px; }
+.ano { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; line-height: 1.5; padding: 0 6px; border-radius: 6px; background: var(--neutral-bg); color: var(--ink-2); margin-right: 6px; vertical-align: 1px; }
 .c-foot { font-size: 12.5px; color: var(--muted); font-weight: 500; }
 .c-foot b { color: var(--ink-2); font-weight: 700; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: var(--neutral-bg); color: var(--neutral); flex: none; }
@@ -135,12 +139,10 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .c-actions { display: flex; align-items: center; gap: 4px; flex: none; }
 .star { display: grid; place-items: center; width: 36px; height: 36px; min-height: 0; padding: 0; border-radius: 10px; background: transparent; color: var(--muted); flex: none; }
 .star:hover { background: var(--fav-bg); color: var(--fav); }
-.star svg { width: 24px; height: 24px; }
-.star svg path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
-.star svg text { display: none; fill: var(--fav-ink); font: 800 6.2px var(--font); letter-spacing: -.2px; }
+.star svg { width: 22px; height: 22px; }
+.star svg path { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; transition: fill .15s; }
 .star[aria-pressed="true"] { color: var(--fav); }
 .star[aria-pressed="true"] svg path { fill: var(--fav); }
-.star[aria-pressed="true"] svg text { display: inline; }
 .cand.fav, .m-row.fav { background: var(--fav-bg); margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; }
 .cand.fav + .cand, .m-row.fav + .m-row { border-top-color: transparent; }
 .extra { margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
@@ -245,6 +247,7 @@ footer a { color: var(--accent-ink); }
 
   <footer>
     Dados oficiais do TSE (<a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">resultados.tse.jus.br</a>), atualizados automaticamente a cada 60 segundos enquanto a página está aberta na tela.
+    A comparação com 2022 mostra os votos do 1º turno de 2022 em Nova Granada (Dados Abertos do TSE) e aparece quando Nova Granada está selecionada.
     Na aba de deputados, a posição é a colocação do candidato entre todos do mesmo cargo em SP. A eleição de deputado depende do quociente partidário, então a situação oficial (Eleito, Suplente) só aparece quando o TSE divulga.
   </footer>
 </div>
@@ -308,11 +311,21 @@ let cidade = guardado('apuracao-cidade', CIDADE_PADRAO);
 let favoritos = new Set();
 try { favoritos = new Set(JSON.parse(guardado('apuracao-favoritos', '[]'))); } catch (e) {}
 const ehFav = (cargo, numero) => favoritos.has(cargo + '-' + numero);
-// Estrela vermelha no estilo do PT (com "PT" dentro quando marcada).
-const ESTRELA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9l7.1-.6z"/><text x="12" y="14.6" text-anchor="middle">PT</text></svg>';
+
+// Votos no 1º turno de 2022 em Nova Granada (Dados Abertos do TSE, votacao_candidato_munzona_2022),
+// ligados pelo nome completo de registro. Chave = cargo de 2026 - número de 2026 -> [votos, cargo disputado em 2022].
+const VOTOS_2022_NG = {"1-13":[5130,"Presidente"],"1-35":[0,"Dep. Federal"],"3-10":[4397,"Governador"],"3-13":[3208,"Governador"],"3-16":[4,"Presidente"],"3-80":[41,"Senador"],"5-111":[424,"Dep. Federal"],"5-160":[0,"Dep. Federal"],"5-180":[45,"Dep. Federal"],"5-222":[3,"Dep. Estadual"],"5-400":[403,"Presidente"],"6-1001":[24,"Dep. Estadual"],"6-1322":[25,"Dep. Federal"],"6-1370":[234,"Dep. Federal"],"6-2007":[45,"Dep. Federal"],"6-2019":[0,"Dep. Federal"],"6-2020":[2151,"Dep. Federal"],"6-2022":[6,"Dep. Federal"],"6-2044":[0,"Dep. Federal"],"6-2244":[383,"Dep. Federal"],"6-2247":[24,"Dep. Federal"],"6-4000":[6,"Dep. Federal"],"7-10222":[460,"Dep. Estadual"],"7-15150":[0,"Dep. Estadual"],"7-20007":[0,"Dep. Estadual"],"7-20520":[0,"Dep. Estadual"],"7-40211":[842,"Dep. Estadual"],"7-55455":[1792,"Dep. Estadual"]};
+const CARGO_2026 = { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Dep. Federal', 7: 'Dep. Estadual' };
+function linha2022(cargo, numero, sufixo) {
+  if (cidade !== CIDADE_PADRAO) return '';
+  const v = VOTOS_2022_NG[cargo + '-' + numero];
+  const texto = v ? `<b>${fmt(v[0])}</b> ${v[0] === 1 ? 'voto' : 'votos'}${sufixo}${v[1] !== CARGO_2026[cargo] ? ' · para ' + v[1] : ''}` : `sem votos${sufixo}`;
+  return `<div class="v22"><span class="ano">2022</span>${texto}</div>`;
+}
+const CORACAO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>';
 function botaoFav(cargo, numero, nome) {
   const on = ehFav(cargo, numero);
-  return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${ESTRELA}</button>`;
+  return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${CORACAO}</button>`;
 }
 let aba = guardado('apuracao-aba', 'dep') === 'maj' ? 'maj' : 'dep';
 let municipios = [];
@@ -409,7 +422,7 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
-  const meta = c ? `<b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `<b>${numero}</b>`;
+  const meta = c ? `nº <b>${numero}</b> · ${c.partido}${titulo(c.nmu) !== titulo(nome) ? ' · urna: ' + titulo(c.nmu) : ''}` : `nº <b>${numero}</b>`;
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
   const pos = c && uf.temVotos ? `<b>${c.pos}º</b> em SP` : 'posição em SP —';
   return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}">
@@ -419,7 +432,7 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
     </div>
     <div class="c-nums">
       <div class="c-votes">${c ? fmt(c.vap) : '—'}<small>votos em SP</small></div>
-      <div class="c-city">${nomeCidade()}: <b>${m ? fmt(m.vap) : '—'}</b></div>
+      <div class="c-city"><span>${nomeCidade()}: <b>${m ? fmt(m.vap) : '—'}</b></span>${linha2022(cargo, numero, '')}</div>
     </div>
     <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
     <div class="c-foot"><b>${c ? c.pvap + '%' : '—'}</b> dos votos válidos · ${pos}</div>
@@ -479,6 +492,7 @@ function renderMajoritarios() {
             <div class="m-top"><span class="m-name">${titulo(c.nmu)}</span><span class="m-right"><span class="m-votes">${fmt(c.vap)}</span>${botaoFav(cd, c.n, titulo(c.nmu))}</span></div>
             <div class="m-sub"><span>${c.n} · ${c.partido}${extra}</span><span class="m-pct"><b>${c.pvap}%</b> em ${nomeCidade()}</span></div>
             <div class="c-bar" title="${fmt(c.vap)} votos em ${nomeCidade()}"><span style="width:${largura}%"></span></div>
+            ${linha2022(cd, c.n, ' aqui')}
             ${linhaGeral(cfg, g, c.n)}
           </div>
         </li>`;
