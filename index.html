@@ -205,6 +205,9 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .m-name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
 .m-id { min-width: 0; }
 .dif { font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.pos-partido { font-size: 12px; color: var(--muted); font-weight: 500; }
+.pos-partido b { color: var(--ink-2); }
+.pos-partido.dentro, .pos-partido.dentro b { color: var(--good); }
 .dif.mais { color: var(--good); }
 .duelos { display: grid; gap: 6px; margin: 8px 0 6px; }
 .duelo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; background: var(--accent-soft); border-radius: 12px; padding: 9px 12px; font-size: 13.5px; color: var(--ink); }
@@ -311,6 +314,7 @@ html.tv:not(.mexeu) .tvm-row .star { cursor: none; }
 .tvm-num .v .up { font-size: .72rem; padding: .05rem .45rem; margin: 0; vertical-align: 0; letter-spacing: 0; }
 .tvm-num small { display: block; font-size: .72rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tvm-num small b { color: var(--ink-2); }
+.tvm-num small .tv-dentro { color: var(--good); font-weight: 700; }
 .tvm-sit { justify-self: end; }
 .tvm-sit .pill { font-size: .75rem; padding: .25rem .65rem; gap: .35rem; }
 .tvm-sit .pill::before { width: .4rem; height: .4rem; }
@@ -495,7 +499,7 @@ function ordenarFora(grupo, res) {
 }
 const MAJORITARIOS = {
   1: { titulo: 'Presidente', ele: ELE_FED, sub: 'Presidente da República', vice: 'vice', geral: 'br-1', onde: 'Brasil', exterior: 'zz-1', dif: true },
-  3: { titulo: 'Governador', ele: ELE_EST, sub: 'Governador de São Paulo', vice: 'vice', geral: 'uf-3', onde: 'SP' },
+  3: { titulo: 'Governador', ele: ELE_EST, sub: 'Governador de São Paulo', vice: 'vice', geral: 'uf-3', onde: 'SP', dif: true },
   5: { titulo: 'Senador', ele: ELE_EST, sub: '2 vagas · cada eleitor vota em 2 candidatos', vice: null, geral: 'uf-5', onde: 'SP' },
 };
 
@@ -608,10 +612,21 @@ function lerResultado(json) {
   const mapa = {};
   const todos = [];
   if (carg) {
-    for (const agr of carg.agr || []) for (const par of agr.par || []) for (const c of par.cand || []) {
-      const vice = (c.vs || []).find(v => v.tp === 'v');
-      const d = { n: c.n, nmu: c.nmu, partido: par.sg, vap: toNum(c.vap), pvap: c.pvap, e: c.e, st: c.st || '', vice: vice ? vice.nmu : '' };
-      mapa[c.n] = d; todos.push(d);
+    for (const agr of carg.agr || []) {
+      const daLista = [];   // todos os candidatos do partido isolado ou da federação (é por ela que as vagas são divididas)
+      const fed = agr.tp === 'f' ? { sg: (agr.com || '').replace(/\s*\/\s*/g, '/'), vagas: toNum(agr.vag) } : null;
+      for (const par of agr.par || []) {
+        const doPartido = [];
+        for (const c of par.cand || []) {
+          const vice = (c.vs || []).find(v => v.tp === 'v');
+          const d = { n: c.n, nmu: c.nmu, partido: par.sg, vap: toNum(c.vap), pvap: c.pvap, e: c.e, st: c.st || '', vice: vice ? vice.nmu : '', fed, vagasLegenda: toNum(agr.vag) };
+          mapa[c.n] = d; todos.push(d); doPartido.push(d); daLista.push(d);
+        }
+        doPartido.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
+        doPartido.forEach((d, i) => { d.posPartido = i + 1; });
+      }
+      daLista.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
+      daLista.forEach((d, i) => { d.posLista = i + 1; });
     }
   }
   todos.sort((a, b) => b.vap - a.vap || a.nmu.localeCompare(b.nmu));
@@ -657,14 +672,7 @@ function situacao(c, temVotos) {
   return [temVotos ? 'Em apuração' : 'Aguardando', ''];
 }
 
-// Diferença de votos entre posições.
-// Deputados: para o candidato logo acima na nossa lista (o 1º da lista mostra quanto tem sobre o 2º).
-function difDep(arr, i, uf, tv) {
-  if (!uf || !uf.temVotos || arr.length < 2) return '';
-  const v = (k) => (uf.mapa[arr[k][1]] || {}).vap || 0;
-  if (i === 0) return `<span class="dif mais">+${fmt(v(0) - v(1))} ${tv ? 's/' : 'sobre'} ${titulo(arr[1][0])}</span>`;
-  return `<span class="dif">−${fmt(v(i - 1) - v(i))} ${tv ? 'p/' : 'para'} ${titulo(arr[i - 1][0])}</span>`;
-}
+// Diferença de votos entre posições (só Presidente e Governador).
 // Presidente: dentro de um ranking (Brasil ou cidade), diferença para a posição de cima.
 function difPos(res, n) {
   const c = res && res.temVotos && res.mapa[n];
@@ -687,13 +695,26 @@ function duelos(cd, classe) {
   return html ? `<div class="${classe}">${html}</div>` : '';
 }
 
+// Posição do deputado dentro do partido (e da federação, quando houver) e quantas vagas a legenda faz agora.
+// Verde quando, pela parcial, está dentro das vagas da legenda.
+function posPartido(c, res, tv) {
+  if (!c || !res || !res.temVotos || !c.posPartido) return '';
+  const vagas = c.vagasLegenda || 0;
+  const dentro = c.posLista <= vagas;
+  const quem = c.fed ? 'federação' : c.partido;
+  if (tv) return ` · ${c.posPartido}º no ${c.partido}${c.fed ? ' · ' + c.posLista + 'º fed.' : ''} (${vagas} ${vagas === 1 ? 'vaga' : 'vagas'})`;
+  const fed = c.fed ? ` · <b>${c.posLista}º</b> na federação ${c.fed.sg}` : '';
+  const txtVagas = vagas ? `${c.fed ? 'a federação' : c.partido} faz <b>${vagas}</b> ${vagas === 1 ? 'vaga' : 'vagas'} agora` : `${c.fed ? 'a federação' : c.partido} ainda não faz vaga`;
+  return `<span class="pos-partido${dentro ? ' dentro' : ''}" title="${dentro ? 'Pela parcial, está dentro das vagas da ' + (c.fed ? 'federação' : 'legenda') : 'Pela parcial, está fora das vagas da ' + (c.fed ? 'federação' : 'legenda')}"><b>${c.posPartido}º</b> no ${c.partido}${fed} · ${txtVagas}</span>`;
+}
+
 // Cor do cartão inteiro pela situação oficial: verde (eleito), amarelo (suplente / 2º turno), vermelho (não eleito).
 function classeSituacao(c, res) {
   if (!res || !c) return '';
   const [txt, cls] = situacao(c, res.temVotos);
   return cls === 'good' ? ' sit-eleito' : cls === 'warn' ? ' sit-suplente' : /n[aã]o eleito/i.test(txt) ? ' sit-nao' : '';
 }
-function cartaoDeputado(cargo, nome, numero, uf, mu, max, dif = '') {
+function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
   const [txt, cls] = uf ? situacao(c, uf.temVotos) : ['Carregando…', ''];
@@ -711,7 +732,7 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max, dif = '') {
         <div class="tile-label">São Paulo</div>
         <div class="tile-num"><span class="c-votes">${c ? fmt(c.vap) : '—'}</span>${selo(uf, numero)}</div>
         <div class="c-bar" title="${c ? fmt(c.vap) + ' votos em SP' : ''}"><span style="width:${largura}%"></span></div>
-        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${pos}</span>${dif}</div>
+        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${pos}</span>${posPartido(c, uf)}</div>
       </div>
       <div class="tile">
         <div class="tile-label">${nomeCidade()}</div>
@@ -747,7 +768,7 @@ function cartaoAliadoFora(x, res) {
       <div class="tile">
         <div class="tile-label">${x.ufNome}</div>
         <div class="tile-num"><span class="c-votes">${c ? fmt(c.vap) : '—'}</span>${selo(res, x.numero)}</div>
-        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${c && res.temVotos ? ` · <b>${c.pos}º</b> no estado` : ''}</span></div>
+        <div class="tile-foot"><span><b>${c ? c.pvap + '%' : '—'}</b> dos válidos${c && res.temVotos ? ` · <b>${c.pos}º</b> no estado` : ''}</span>${posPartido(c, res)}</div>
       </div>
       <div class="tile">
         <div class="tile-label">Apuração em ${x.uf.toUpperCase()}</div>
@@ -779,10 +800,10 @@ function renderDeputados() {
         <div><h2>${cfg.titulo}</h2><div class="vagas">${uf && uf.vagas ? uf.vagas + ' vagas em SP' : ''}</div></div>
         <button type="button" class="btn-ghost" data-copiar="${cd}">Copiar para a planilha</button>
       </div>
-      <ul class="list">${ordenar(cd, cfg.principais, uf).map(([n, num], i, arr) => cartaoDeputado(cd, n, num, uf, mu, max, difDep(arr, i, uf))).join('')}</ul>
+      <ul class="list">${ordenar(cd, cfg.principais, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')}</ul>
       <div class="extra">
         <div class="extra-title">Apenas para conhecimento</div>
-        <ul class="list">${ordenar(cd, cfg.conhecimento, uf).map(([n, num], i, arr) => cartaoDeputado(cd, n, num, uf, mu, max, difDep(arr, i, uf))).join('')}</ul>
+        <ul class="list">${ordenar(cd, cfg.conhecimento, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')}</ul>
       </div>`;
   }
 }
@@ -876,7 +897,7 @@ function renderFavoritos() {
     const uf = pega('uf-' + cd), mu = pega('mu-' + cd);
     const todos = [...cfg.principais, ...cfg.conhecimento];
     const max = uf ? Math.max(0, ...todos.map(([, n]) => (uf.mapa[n] || {}).vap || 0)) : 0;
-    grupos.push([cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '', ordenar(cd, lista, uf).map(([n, num], i, arr) => cartaoDeputado(cd, n, num, uf, mu, max, difDep(arr, i, uf))).join('')]);
+    grupos.push([cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '', ordenar(cd, lista, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')]);
   }
   for (const grupo of gruposFora()) {
     const marcados = grupo.filter(x => ehFav(x.chave, x.numero));
@@ -916,14 +937,14 @@ function situTV(c, res) {
   const [txt, cls] = res ? situacao(c, res.temVotos) : ['Carregando…', ''];
   return `<span class="pill ${cls}">${txt}</span>`;
 }
-function linhaTVDeputado(cargo, nome, numero, uf, mu, dif = '') {
+function linhaTVDeputado(cargo, nome, numero, uf, mu) {
   const c = uf && uf.mapa[numero], m = mu && mu.mapa[numero];
   const av = avisoDe(cargo, numero);
   const v22 = cidade === CIDADE_PADRAO ? VOTOS_2022_NG[cargo + '-' + numero] : null;
   const det22 = cidade !== CIDADE_PADRAO ? '' : v22 ? ` · 2022: <b>${fmt(v22[0])}</b>` : ' · 2022: —';
   return `<div class="tvm-row tvm-grid-dep${ehFav(cargo, numero) ? ' fav' : ''}${classeSituacao(c, uf)}${av ? ' mudou ' + av.tipo : ''}">
     <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(nome)}</b><span>nº ${numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(cargo, numero, titulo(nome))}</div>
-    <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(uf, numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && uf.temVotos ? ' · ' + c.pos + (dif ? 'º' : 'º no estado') : ''}${dif ? ' · ' + dif : ''}</small></div>
+    <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(uf, numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && uf.temVotos ? ' · ' + c.pos + 'º' : ''}<span class="${c && c.posLista <= (c.vagasLegenda || 0) ? 'tv-dentro' : ''}">${posPartido(c, uf, true)}</span></small></div>
     <div class="tvm-num"><div class="v">${m ? fmt(m.vap) : '—'}${selo(mu, numero)}</div><small>${m ? '<b>' + m.pvap + '%</b>' : ''}${det22}</small></div>
     <div class="tvm-sit">${situTV(c, uf)}</div>
   </div>`;
@@ -934,8 +955,8 @@ function cabecalhoTV(titulo_, sub) {
 function cartaoTVDeputados(cd) {
   const cfg = CARGOS[cd], uf = pega('uf-' + cd), mu = pega('mu-' + cd);
   return `<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}
-    <div class="tvm-rows">${ordenar(cd, cfg.principais, uf).map(([n, num], i, arr) => linhaTVDeputado(cd, n, num, uf, mu, difDep(arr, i, uf, true))).join('')}</div>
-    ${cfg.conhecimento.length ? `<div class="tvm-sep">Apenas para conhecimento</div><div class="tvm-rows">${ordenar(cd, cfg.conhecimento, uf).map(([n, num], i, arr) => linhaTVDeputado(cd, n, num, uf, mu, difDep(arr, i, uf, true))).join('')}</div>` : ''}
+    <div class="tvm-rows">${ordenar(cd, cfg.principais, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div>
+    ${cfg.conhecimento.length ? `<div class="tvm-sep">Apenas para conhecimento</div><div class="tvm-rows">${ordenar(cd, cfg.conhecimento, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div>` : ''}
   </section>`;
 }
 function cartaoTVFora(grupo) {
@@ -950,7 +971,7 @@ function linhaTVFora(x, res) {
   const av = avisoDe(x.chave, x.numero);
   return `<div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
       <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
-      <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
+      <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º' : ''}<span class="${c && c.posLista <= (c.vagasLegenda || 0) ? 'tv-dentro' : ''}">${posPartido(c, res, true)}</span></small></div>
       <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
       <div class="tvm-sit">${situTV(c, res)}</div>
     </div>`;
@@ -990,7 +1011,7 @@ function htmlTVFavoritos() {
   for (const cd of Object.keys(CARGOS)) {
     const cfg = CARGOS[cd], uf = pega('uf-' + cd), mu = pega('mu-' + cd);
     const lista = [...cfg.principais, ...cfg.conhecimento].filter(([, n]) => ehFav(cd, n));
-    if (lista.length) partes.push(`<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}<div class="tvm-rows">${ordenar(cd, lista, uf).map(([n, num], i, arr) => linhaTVDeputado(cd, n, num, uf, mu, difDep(arr, i, uf, true))).join('')}</div></section>`);
+    if (lista.length) partes.push(`<section class="tvm-card">${cabecalhoTV(cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '')}<div class="tvm-rows">${ordenar(cd, lista, uf).map(([n, num]) => linhaTVDeputado(cd, n, num, uf, mu)).join('')}</div></section>`);
   }
   for (const grupo of gruposFora()) { const marcados = grupo.filter(x => ehFav(x.chave, x.numero)); if (marcados.length) partes.push(cartaoTVFora(marcados)); }
   for (const cd of Object.keys(MAJORITARIOS)) {
