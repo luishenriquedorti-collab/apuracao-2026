@@ -382,7 +382,7 @@ footer a { color: var(--accent-ink); }
 .festa-fechar:hover { background: var(--line); }
 .btn-festa { font-size: 12.5px; font-weight: 800; min-height: 0; padding: 6px 12px; border-radius: 999px; background: var(--festa-verde); color: var(--surface); border: 0; cursor: pointer; }
 .festa.curta .festa-card::after { content: ""; position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--festa-verde);
-  transform-origin: left; animation: festaTempo 8s linear forwards; }
+  transform-origin: left; animation: festaTempo var(--festa-tempo, 8s) linear forwards; }
 @keyframes festaEntra { from { transform: scale(.6) translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes festaTempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .festa-card { animation: none; } }
@@ -507,7 +507,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-04-2045';
+const VERSAO = '2026-10-04-2100';
 
 const CARGOS = {
   6: {
@@ -751,14 +751,14 @@ function duelo(res, onde) {
   return `<div class="duelo"><span class="duelo-onde">${onde} · 1º × 2º</span><span><b>${titulo(a.nmu)}</b> ${fmt(a.vap)} × <b>${titulo(b.nmu)}</b> ${fmt(b.vap)}</span><span class="duelo-dif">diferença de <b>${fmt(a.vap - b.vap)}</b> votos (${pp} p.p.)</span></div>`;
 }
 // ===== Festa: só quando o TSE marcar como eleito. Flávio Bolsonaro (nº 22) ganha a festa grande (45 s);
-// os deputados abaixo ganham uma curta (8 s). Cada um aparece uma vez só em cada aparelho; se vierem
+// os deputados abaixo ganham uma curta (8 s; Thiago Ganem, 30 s). Cada um aparece uma vez só em cada aparelho; se vierem
 // vários juntos, entram em fila, um depois do outro.
 const FESTA_NUMERO = '22';
 const TITULO_PRESIDENTE = 'ELEITO PRESIDENTE DO BRASIL';
 const FESTA_DEPUTADOS = [
   { chave: 'uf-6', numero: '2020', titulo: 'ELEITA DEPUTADA FEDERAL · SP' },   // Renata Abreu
   { chave: 'uf-6', numero: '2007', titulo: 'ELEITO DEPUTADO FEDERAL · SP' },   // Felipe Becari
-  { chave: 'mg-6', numero: '2275', titulo: 'ELEITO DEPUTADO FEDERAL · MG' },   // Thiago Ganem
+  { chave: 'mg-6', numero: '2275', titulo: 'ELEITO DEPUTADO FEDERAL · MG', dur: 30000 },   // Thiago Ganem: candidato especial, festa mais longa
   { chave: 'uf-7', numero: '40211', titulo: 'ELEITO DEPUTADO ESTADUAL · SP' }, // Valdomiro Lopes
 ];
 // Prévia: '#festa' mostra a do Presidente; '#festa-deputados' mostra as dos deputados.
@@ -772,7 +772,7 @@ function verificarFesta() {
     if (previaMostrada) return;
     if (location.hash.includes('deputados')) {
       if (!FESTA_DEPUTADOS.every(d => pega(d.chave))) return;   // espera os arquivos chegarem
-      for (const d of FESTA_DEPUTADOS) filaFesta.push({ c: pega(d.chave).mapa[d.numero], titulo: d.titulo, curta: true, previa: true });
+      for (const d of FESTA_DEPUTADOS) filaFesta.push({ c: pega(d.chave).mapa[d.numero], titulo: d.titulo, curta: true, dur: d.dur, previa: true });
     } else {
       const g = pega('br-1');
       if (!g) return;
@@ -786,7 +786,7 @@ function verificarFesta() {
   for (const q of quem) {
     const c = eleitoEm(q.chave, q.numero), marca = 'apuracao-festa-' + q.numero + SUF;
     if (!c || guardado(marca, '') === '1' || filaFesta.some(f => f.marca === marca) || (festaAtual && festaAtual.marca === marca)) continue;
-    filaFesta.push({ c, titulo: q.titulo, curta: q.curta, marca });
+    filaFesta.push({ c, titulo: q.titulo, curta: q.curta, dur: q.dur, marca });
   }
   proximaFesta();
 }
@@ -798,12 +798,13 @@ function mostrarFesta(f) {
   festaRodando = true;
   festaAtual = f;
   if (f.marca) guardar(f.marca, '1');   // marca só quando aparece de fato
-  const c = f.c, dur = f.curta ? 8000 : 45000;
+  const c = f.c, dur = f.dur || (f.curta ? 8000 : 45000);
   $('festa-nome').textContent = c ? titulo(c.nmu).replace(/^Flavio/, 'Flávio') : 'Flávio Bolsonaro';
   $('festa-titulo').textContent = f.titulo;
   $('festa-num').innerHTML = c ? `<b>${c.pvap}%</b> dos votos válidos · <b>${fmt(c.vap)}</b> votos` : '';
   $('festa-previa').hidden = !f.previa;
   $('festa').classList.toggle('curta', !!f.curta);
+  $('festa').style.setProperty('--festa-tempo', dur / 1000 + 's');
   $('festa').hidden = false;
   $('festa-fechar').focus({ preventScroll: true });
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) animarFesta(dur);
