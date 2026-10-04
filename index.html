@@ -270,7 +270,12 @@ html.tv:not(.mexeu) { cursor: none; }
 .tvm-row.mudou { margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; box-shadow: inset 0 0 0 .15rem var(--good-dot); }
 .tvm-row.mudou.warn { box-shadow: inset 0 0 0 .15rem var(--warn-dot); }
 .tvm-row.fav + .tvm-row, .tvm-row.mudou + .tvm-row { border-top-color: transparent; }
-.tvm-nome { min-width: 0; }
+.tvm-nome { display: flex; align-items: center; gap: .3rem; min-width: 0; }
+.tvm-nome-txt { flex: 1; min-width: 0; }
+.tvm-row .star { width: 2.1rem; height: 2.1rem; border-radius: .6rem; transition: opacity .25s; }
+.tvm-row .star svg { width: 1.25rem; height: 1.25rem; }
+html.tv:not(.mexeu) .tvm-row .star[aria-pressed="false"] { opacity: 0; }
+html.tv:not(.mexeu) .tvm-row .star { cursor: none; }
 .tvm-nome b { display: block; font-size: 1.12rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tvm-nome span { display: block; font-size: .75rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tvm-num { min-width: 0; }
@@ -809,7 +814,7 @@ function linhaTVDeputado(cargo, nome, numero, uf, mu) {
   const v22 = cidade === CIDADE_PADRAO ? VOTOS_2022_NG[cargo + '-' + numero] : null;
   const det22 = cidade !== CIDADE_PADRAO ? '' : v22 ? ` · 2022: <b>${fmt(v22[0])}</b>` : ' · 2022: —';
   return `<div class="tvm-row tvm-grid-dep${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
-    <div class="tvm-nome"><b>${titulo(nome)}</b><span>nº ${numero}${c ? ' · ' + c.partido : ''}</span></div>
+    <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(nome)}</b><span>nº ${numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(cargo, numero, titulo(nome))}</div>
     <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(uf, numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && uf.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
     <div class="tvm-num"><div class="v">${m ? fmt(m.vap) : '—'}${selo(mu, numero)}</div><small>${m ? '<b>' + m.pvap + '%</b>' : ''}${det22}</small></div>
     <div class="tvm-sit">${situTV(c, uf)}</div>
@@ -831,7 +836,7 @@ function cartaoTVFora(x) {
   return `<section class="tvm-card">
     <div class="tvm-card-head tvm-grid-dep"><div><h3>${x.titulo}</h3><div class="sub">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''}</div></div><div class="tvm-colh">${x.ufNome}</div><div class="tvm-colh">Apuração em ${x.uf.toUpperCase()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>
     <div class="tvm-rows"><div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
-      <div class="tvm-nome"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>
+      <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
       <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
       <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
       <div class="tvm-sit">${situTV(c, res)}</div>
@@ -861,7 +866,7 @@ function linhaTVMaj(cd, c, mu, g) {
       const sg = seloGeral(g, c.n).replace('class="pill', 'class="pill mini');
       return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
         <span class="tvm-rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
-        <div class="tvm-nome"><b>${titulo(c.nmu)}</b><span>nº ${c.n} · ${c.partido}</span></div>
+        <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(c.nmu)}</b><span>nº ${c.n} · ${c.partido}</span></div>${botaoFav(cd, c.n, titulo(c.nmu))}</div>
         <div class="tvm-num dir"><div class="v">${fmt(c.vap)}</div><small><b>${c.pvap}%</b>${selo(mu, c.n) ? ' · ' + selo(mu, c.n).replace(/<[^>]+>/g, '') : ''}</small></div>
         <div class="tvm-num dir tvm-geral"><div class="v">${gc ? gc.pvap + '%' : '—'}</div><small>${gc ? fmt(gc.vap) : ''}</small>${sg}</div>
       </div>`;
