@@ -241,7 +241,10 @@ html.tv:not(.mexeu) .tvm-refresh { cursor: none; }
 .tvm-tela { position: relative; overflow: hidden; font-size: .95rem; font-weight: 800; padding: .5rem 1.1rem; min-height: 0; border-radius: .8rem; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
 .tvm-tela.ativa { background: var(--accent); color: var(--surface); border-color: var(--accent); }
 .tvm-tela .tempo { position: absolute; left: 0; bottom: 0; height: .2rem; width: 0; background: rgba(255, 255, 255, .75); }
-.tvm-tela.ativa .tempo { animation: tvtempo var(--tv-tempo, 25s) linear forwards; }
+.tvm-telas.girando .tvm-tela.ativa .tempo { animation: tvtempo var(--tv-tempo, 25s) linear forwards; }
+.tvm-girar { font-size: .8rem; font-weight: 700; padding: .45rem .8rem; min-height: 0; border-radius: .8rem; background: transparent; border: 1px dashed var(--line); color: var(--ink-2); }
+.tvm-girar.on { border-style: solid; color: var(--accent-ink); background: var(--accent-soft); }
+html.tv:not(.mexeu) .tvm-girar:not(.on) { opacity: 0; }
 @keyframes tvtempo { from { width: 0; } to { width: 100%; } }
 .tvm-aviso { flex: 1; min-width: 0; display: flex; gap: .6rem; overflow: hidden; }
 .tvm-aviso .aviso { padding: .45rem .9rem; border-radius: .8rem; gap: .6rem; min-width: 0; flex: 0 1 auto; }
@@ -298,7 +301,7 @@ html.tv:not(.mexeu) .tvm-row .star { cursor: none; }
 .tvm-vazio { padding: 1rem 0; color: var(--muted); font-size: .9rem; }
 .tvm-totais { display: flex; gap: 1.2rem; font-size: .72rem; color: var(--muted); padding: .45rem 0 .2rem; border-top: 1px dashed var(--line); }
 .tvm-totais b { color: var(--ink-2); }
-@media (prefers-reduced-motion: reduce) { .tvm-tela.ativa .tempo { animation: none; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .tvm-telas.girando .tvm-tela.ativa .tempo { animation: none; width: 100%; } }
 
 footer a { color: var(--accent-ink); }
 
@@ -799,7 +802,10 @@ function contarFavoritos() {
 
 // ===== Tela =====
 // ===== Modo TV =====
-let modoTV = false, telaTV = 0, timerTela = null, wakeLock = null, timerMouse = null;
+let modoTV = false, timerTela = null, wakeLock = null, timerMouse = null, inicioTela = Date.now();
+// A TV fica na tela escolhida; alternar sozinha é opcional (botão "Alternar sozinho"). Ambos ficam guardados.
+let telaTV = Number(guardado('apuracao-tv-tela', '0')) || 0;
+let girarTV = guardado('apuracao-tv-girar', '0') === '1';
 const telasTV = () => [{ id: 'dep', nome: 'Nossos deputados' }, { id: 'maj', nome: 'Presidente, Governo e Senado' }]
   .concat(favoritos.size ? [{ id: 'fav', nome: `Favoritos (${favoritos.size})` }] : []);
 const TEMPO_TELA = 25;
@@ -905,7 +911,11 @@ function renderTV() {
     medidorTV(nomeCidade(), pega('mu-6') || pega('mu-3') || pega('mu-1')),
     ...ALIADOS_FORA.map(x => medidorTV(x.ufNome, pega(x.chave))),
   ].join('');
-  $('tvm-telas').innerHTML = telas.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo"></span></button>`).join('');
+  // A barrinha mostra quanto falta para trocar (só quando está alternando sozinha); não reinicia a cada atualização.
+  const passou = Math.min((Date.now() - inicioTela) / 1000, TEMPO_TELA);
+  $('tvm-telas').className = 'tvm-telas' + (girarTV ? ' girando' : '');
+  $('tvm-telas').innerHTML = telas.map((t, i) => `<button type="button" class="tvm-tela${i === telaTV ? ' ativa' : ''}" data-tela="${i}">${t.nome}<span class="tempo" style="animation-delay:-${passou.toFixed(1)}s"></span></button>`).join('')
+    + `<button type="button" class="tvm-girar${girarTV ? ' on' : ''}" data-girar title="${girarTV ? 'Parar de trocar de tela sozinho' : 'Trocar de tela sozinho a cada ' + TEMPO_TELA + ' segundos'}">${girarTV ? '⏸ Parar de alternar' : '▶ Alternar sozinho'}</button>`;
   $('tvm-aviso').innerHTML = avisos.slice(0, 2).map(a => `<div class="aviso ${a.tipo}"><span class="aviso-dot"></span><div class="aviso-txt"><b>${a.nome}</b> agora está <b class="sit">${a.sit}</b> · ${a.cargo}</div></div>`).join('');
   const body = $('tvm-body');
   body.className = 'tvm-body ' + tela;
@@ -935,9 +945,16 @@ function tickTV() {
 function irTela(i) {
   const n = telasTV().length;
   telaTV = (i + n) % n;
+  guardar('apuracao-tv-tela', String(telaTV));
+  inicioTela = Date.now();
   clearInterval(timerTela);
-  timerTela = setInterval(() => irTela(telaTV + 1), TEMPO_TELA * 1000);
+  if (girarTV) timerTela = setInterval(() => irTela(telaTV + 1), TEMPO_TELA * 1000);
   renderTV();
+}
+function alternarGiro() {
+  girarTV = !girarTV;
+  guardar('apuracao-tv-girar', girarTV ? '1' : '0');
+  irTela(telaTV);
 }
 async function pedirTelaLigada() {
   try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {}
@@ -951,7 +968,7 @@ function entrarTV(comTelaCheia) {
   document.documentElement.style.setProperty('--tv-tempo', TEMPO_TELA + 's');
   if (comTelaCheia) telaCheia();
   pedirTelaLigada();
-  irTela(0);
+  irTela(telaTV);
   atualizar();
 }
 function sairTV() {
@@ -1196,7 +1213,10 @@ $('btn-tv').addEventListener('click', () => entrarTV(true));
 $('tvm-full').addEventListener('click', telaCheia);
 $('tvm-sair').addEventListener('click', sairTV);
 $('tvm-atualizar').addEventListener('click', atualizar);
-$('tvm-telas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-tela]'); if (b) irTela(Number(b.dataset.tela)); });
+$('tvm-telas').addEventListener('click', (ev) => {
+  if (ev.target.closest('[data-girar]')) { alternarGiro(); return; }
+  const b = ev.target.closest('[data-tela]'); if (b) irTela(Number(b.dataset.tela));
+});
 document.addEventListener('keydown', (ev) => {
   if (!modoTV) return;
   if (ev.key === 'Escape') sairTV();
