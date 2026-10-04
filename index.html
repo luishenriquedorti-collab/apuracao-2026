@@ -659,10 +659,10 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   </li>`;
 }
 
-// Favoritos primeiro; depois por votos (antes da apuração, na ordem da planilha).
+// Sempre pela posição (mais votado primeiro); antes da apuração, na ordem da planilha.
 function ordenar(cargo, lista, uf) {
   const votos = (n) => uf && uf.temVotos ? ((uf.mapa[n] || {}).vap || 0) : 0;
-  return [...lista].sort((a, b) => (ehFav(cargo, b[1]) - ehFav(cargo, a[1])) || (votos(b[1]) - votos(a[1])));
+  return [...lista].sort((a, b) => votos(b[1]) - votos(a[1]));
 }
 
 function cartaoAliadoFora(x, res) {
@@ -765,21 +765,28 @@ function renderMajoritarios() {
       ${corpo}`;
   }
 }
-// Ordem dos candidatos: favoritos primeiro; depois pelos votos na cidade. Enquanto a cidade ainda não
+// Ordem dos candidatos: pela posição na cidade (1º, 2º, 3º...). Enquanto a cidade ainda não
 // tem votos apurados, segue a ordem do resultado geral (Brasil ou SP), em vez de ordem alfabética.
 function ordemMaj(cd, mu, g) {
   const usarGeral = !mu.temVotos && g && g.temVotos;
   const pos = (c) => usarGeral ? ((g.mapa[c.n] || {}).pos || 999) : c.pos;
-  return [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (pos(a) - pos(b)));
+  return [...mu.todos].sort((a, b) => pos(a) - pos(b));
+}
+// Posição mostrada na bolinha: em Nova Granada quando a cidade já tem votos; antes, no Brasil ou em SP.
+function posicaoMaj(c, mu, g) {
+  if (mu.temVotos) return { pos: c.pos, onde: nomeCidade() };
+  const gc = g && g.temVotos && g.mapa[c.n];
+  return gc ? { pos: gc.pos, onde: g === pega('br-1') ? 'no Brasil' : 'em SP' } : { pos: null, onde: '' };
 }
 function linhaMajoritario(cd, cfg, c, mu, g, max) {
-        const lider = mu.temVotos && c.pos === 1;
+        const pm = posicaoMaj(c, mu, g);
+        const lider = pm.pos === 1;
         const largura = max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
         const extra = c.vice && cfg.vice ? ` · vice: ${titulo(c.vice)}` : '';
         return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}${classeSituacao(g && g.mapa[c.n], g)}">
           <div class="c-top">
             <div class="m-id">
-              <div class="m-title"><span class="rank" title="Posição em ${nomeCidade()}">${mu.temVotos ? c.pos + 'º' : '–'}</span><span class="m-name">${titulo(c.nmu)}</span></div>
+              <div class="m-title"><span class="rank" title="${pm.pos ? 'Posição ' + (mu.temVotos ? 'em ' + pm.onde : pm.onde) : ''}">${pm.pos ? pm.pos + 'º' : '–'}</span><span class="m-name">${titulo(c.nmu)}</span></div>
               <div class="c-meta">nº <b>${c.n}</b> · ${c.partido}${extra}</div>
             </div>
             <div class="c-actions">${seloGeral(g, c.n)}${botaoFav(cd, c.n, titulo(c.nmu))}</div>
@@ -899,8 +906,9 @@ function cartaoTVMajMoldura(cd, corpo) {
 function linhaTVMaj(cd, c, mu, g) {
       const gc = g && g.mapa[c.n];
       const sg = seloGeral(g, c.n).replace('class="pill', 'class="pill mini');
-      return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}${classeSituacao(gc, g)}">
-        <span class="tvm-rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
+      const pm = posicaoMaj(c, mu, g);
+      return `<div class="tvm-row tvm-grid-maj${pm.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}${classeSituacao(gc, g)}">
+        <span class="tvm-rank">${pm.pos ? pm.pos + 'º' : '–'}</span>
         <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(c.nmu)}</b><span>nº ${c.n} · ${c.partido}</span></div>${botaoFav(cd, c.n, titulo(c.nmu))}</div>
         <div class="tvm-num dir"><div class="v">${fmt(c.vap)}</div><small><b>${c.pvap}%</b>${selo(mu, c.n) ? ' · ' + selo(mu, c.n).replace(/<[^>]+>/g, '') : ''}</small></div>
         <div class="tvm-num dir tvm-geral"><div class="v">${gc ? gc.pvap + '%' : '—'}</div><small>${gc ? fmt(gc.vap) : ''}</small>${sg}</div>
