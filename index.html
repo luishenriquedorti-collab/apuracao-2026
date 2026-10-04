@@ -61,7 +61,7 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
   margin-inline: -16px; padding: 10px 16px;
   background: var(--bg-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
-.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
+.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
 .tab {
   display: flex; align-items: center; gap: 12px; text-align: left;
   font: inherit; color: var(--ink-2); background: transparent; border: 0; border-radius: 13px;
@@ -194,6 +194,12 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .m-row .c-meta { margin-top: 2px; }
 .m-name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
 .m-id { min-width: 0; }
+.fav-vazio { grid-column: 1 / -1; text-align: center; padding: 40px 24px; }
+.fav-vazio svg { width: 40px; height: 40px; fill: none; stroke: var(--bar); stroke-width: 1.6; stroke-linejoin: round; }
+.fav-vazio h2 { margin: 10px 0 6px; }
+.fav-vazio p { margin: 0 auto; max-width: 46ch; color: var(--ink-2); }
+.card.fav-grupo .list > .cand.fav, .card.fav-grupo .list > .m-row.fav { background: transparent; margin-inline: 0; padding-inline: 0; }
+.card.fav-grupo .fav .tile { background: var(--tile); }
 .totais { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); font-weight: 500; padding: 12px 0 14px; border-top: 1px dashed var(--line); margin-top: 4px; }
 .totais b { color: var(--ink-2); font-weight: 700; }
 
@@ -293,6 +299,9 @@ footer a { color: var(--accent-ink); }
   .tab svg { width: 20px; height: 20px; }
   .tab-title { font-size: 13.5px; }
   .tab-sub { font-size: 11px; }
+  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tab svg { display: none; }
+  .tab-title { font-size: 12.5px; }
   .progress { gap: 10px; }
   .progress.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .progress.tres .prog:first-child { grid-column: 1 / -1; }
@@ -327,6 +336,10 @@ footer a { color: var(--accent-ink); }
       <button class="tab" role="tab" id="tab-maj" data-aba="maj" aria-controls="painel-maj" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v7M9.5 10v7M14.5 10v7M19 10v7"/><path d="M3 20h18"/></svg>
         <span class="tab-text"><span class="tab-title">Presidente, Governo e Senado</span><span class="tab-sub" id="tab-maj-sub">votos na cidade</span></span>
+      </button>
+      <button class="tab" role="tab" id="tab-fav" data-aba="fav" aria-controls="painel-fav" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>
+        <span class="tab-text"><span class="tab-title">Favoritos</span><span class="tab-sub" id="tab-fav-sub">nenhum ainda</span></span>
       </button>
     </div>
   </nav>
@@ -368,6 +381,7 @@ footer a { color: var(--accent-ink); }
       <section class="card" id="sec-3"></section>
       <section class="card" id="sec-5"></section>
     </div>
+    <div class="grid" id="painel-fav" role="tabpanel" aria-labelledby="tab-fav" hidden></div>
   </main>
 
   <footer>
@@ -445,6 +459,7 @@ const ARQUIVOS = {
     { chave: 'mu-5', ele: ELE_EST, cargo: 5, nivel: 'mu' },
   ],
 };
+ARQUIVOS.fav = ARQUIVOS.dep.concat(ARQUIVOS.maj);
 
 // ===== Estado =====
 const DEMO = location.hash.includes('demo');
@@ -471,7 +486,8 @@ function botaoFav(cargo, numero, nome) {
   const on = ehFav(cargo, numero);
   return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${CORACAO}</button>`;
 }
-let aba = guardado('apuracao-aba', 'dep') === 'maj' ? 'maj' : 'dep';
+let aba = guardado('apuracao-aba', 'dep');
+if (!['dep', 'maj', 'fav'].includes(aba)) aba = 'dep';
 let municipios = [];
 const dados = {};            // chave -> { res, cidade, em }
 let ciclo = 0;               // conta as atualizações (para buscar deputados de vez em quando na outra aba)
@@ -693,7 +709,15 @@ function renderMajoritarios() {
       const max = mu.todos.length ? mu.todos[0].vap : 0;
       const g = pega(cfg.geral);
       const lista = [...mu.todos].sort((a, b) => (ehFav(cd, b.n) - ehFav(cd, a.n)) || (a.pos - b.pos));
-      corpo = `<ul class="list">${lista.map((c) => {
+      corpo = `<ul class="list">${lista.map((c) => linhaMajoritario(cd, cfg, c, mu, g, max)).join('')}</ul>
+      <div class="totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
+    }
+    $('sec-' + cd).innerHTML = `
+      <div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${cfg.sub}</div></div></div>
+      ${corpo}`;
+  }
+}
+function linhaMajoritario(cd, cfg, c, mu, g, max) {
         const lider = mu.temVotos && c.pos === 1;
         const largura = max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
         const extra = c.vice && cfg.vice ? ` · vice: ${titulo(c.vice)}` : '';
@@ -715,13 +739,39 @@ function renderMajoritarios() {
             ${blocoGeral(cfg, g, c.n)}
           </div>
         </li>`;
-      }).join('')}</ul>
-      <div class="totais"><span>Válidos <b>${fmt(mu.validos)}</b></span><span>Brancos <b>${fmt(mu.brancos)}</b></span><span>Nulos <b>${fmt(mu.nulos)}</b></span></div>`;
-    }
-    $('sec-' + cd).innerHTML = `
-      <div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${cfg.sub}</div></div></div>
-      ${corpo}`;
+}
+
+// ===== Aba: Favoritos (todos os marcados com o coração, de qualquer cargo) =====
+function renderFavoritos() {
+  const grupos = [];
+  for (const cd of Object.keys(CARGOS)) {
+    const cfg = CARGOS[cd];
+    const lista = [...cfg.principais, ...cfg.conhecimento].filter(([, n]) => ehFav(cd, n));
+    if (!lista.length) continue;
+    const uf = pega('uf-' + cd), mu = pega('mu-' + cd);
+    const todos = [...cfg.principais, ...cfg.conhecimento];
+    const max = uf ? Math.max(0, ...todos.map(([, n]) => (uf.mapa[n] || {}).vap || 0)) : 0;
+    grupos.push([cfg.titulo, uf && uf.vagas ? uf.vagas + ' vagas em SP' : '', ordenar(cd, lista, uf).map(([n, num]) => cartaoDeputado(cd, n, num, uf, mu, max)).join('')]);
   }
+  for (const x of ALIADOS_FORA) {
+    if (ehFav(x.chave, x.numero)) grupos.push([x.titulo, 'Aliado em ' + x.ufNome, cartaoAliadoFora(x, pega(x.chave))]);
+  }
+  for (const cd of Object.keys(MAJORITARIOS)) {
+    const cfg = MAJORITARIOS[cd], mu = pega('mu-' + cd);
+    const marcados = [...favoritos].filter(k => k.startsWith(cd + '-')).map(k => k.slice(cd.length + 1));
+    if (!marcados.length) continue;
+    if (!mu) { grupos.push([cfg.titulo, cfg.sub, '<li class="vagas" style="padding:12px 0">Carregando…</li>']); continue; }
+    const g = pega(cfg.geral), max = mu.todos.length ? mu.todos[0].vap : 0;
+    const lista = mu.todos.filter(c => marcados.includes(c.n));
+    grupos.push([cfg.titulo, cfg.sub, lista.map(c => linhaMajoritario(cd, cfg, c, mu, g, max)).join('')]);
+  }
+  $('painel-fav').innerHTML = grupos.length
+    ? grupos.map(([t, sub, itens]) => `<section class="card fav-grupo"><div class="card-head"><div><h2>${t}</h2><div class="vagas">${sub}</div></div></div><ul class="list">${itens}</ul></section>`).join('')
+    : `<section class="card fav-vazio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg><h2>Nenhum favorito ainda</h2><p>Toque no coração ♡ de qualquer candidato nas abas <b>Nossos deputados</b> ou <b>Presidente, Governo e Senado</b>. Todos os marcados aparecem juntos aqui.</p></section>`;
+}
+function contarFavoritos() {
+  const n = favoritos.size;
+  $('tab-fav-sub').textContent = n === 0 ? 'nenhum ainda' : n === 1 ? '1 candidato' : n + ' candidatos';
 }
 
 // ===== Tela =====
@@ -870,14 +920,16 @@ function render() {
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', String(b.dataset.aba === aba));
   $('painel-dep').hidden = aba !== 'dep';
   $('painel-maj').hidden = aba !== 'maj';
+  $('painel-fav').hidden = aba !== 'fav';
   $('tab-maj-sub').textContent = 'votos em ' + nomeCidade();
-  if (aba === 'dep') renderDeputados(); else renderMajoritarios();
+  contarFavoritos();
+  if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else renderFavoritos();
 
-  const br = aba === 'maj' ? pega('br-1') : null;
+  const br = aba !== 'dep' ? pega('br-1') : null;
   const uf = pega(aba === 'dep' ? 'uf-6' : 'uf-3') || pega('uf-6') || pega('uf-3');
   const mu = pega(aba === 'dep' ? 'mu-6' : 'mu-3') || pega('mu-6') || pega('mu-3') || pega('mu-1');
-  $('prog-br').hidden = aba !== 'maj';
-  $('progress').classList.toggle('tres', aba === 'maj');
+  $('prog-br').hidden = aba === 'dep';
+  $('progress').classList.toggle('tres', aba !== 'dep');
   preencherAndamento('br', br);
   preencherAndamento('uf', uf);
   preencherAndamento('mu', mu);
@@ -1081,7 +1133,8 @@ document.addEventListener('click', (ev) => {
 });
 document.querySelector('.tabs').addEventListener('keydown', (ev) => {
   if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
-  trocarAba(aba === 'dep' ? 'maj' : 'dep');
+  const ordem = ['dep', 'maj', 'fav'];
+  trocarAba(ordem[(ordem.indexOf(aba) + (ev.key === 'ArrowRight' ? 1 : 2)) % 3]);
   document.querySelector(`.tab[data-aba="${aba}"]`).focus();
 });
 $('refresh').addEventListener('click', atualizar);
