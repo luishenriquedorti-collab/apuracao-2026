@@ -30,6 +30,9 @@
   --bad: #a33b3b;   --bad-bg: #fcecec;
   --neutral: #6b7486; --neutral-bg: #f0f2f6;
   --fav: #2a78d6; --fav-bg: #eef5fe;
+  --sit-eleito: #e9f7ee; --sit-eleito-borda: #bfe6cc;
+  --sit-suplente: #fff5dc; --sit-suplente-borda: #f3d999;
+  --sit-nao: #fdeeee; --sit-nao-borda: #f2c8c8;
   --tile: #f5f7fb;
   --shadow: 0 1px 2px rgba(28, 36, 51, .04), 0 6px 24px rgba(28, 36, 51, .06);
   --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -176,6 +179,13 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .star[aria-pressed="true"] svg path { fill: var(--fav); }
 .cand.fav, .m-row.fav { background: var(--fav-bg); margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; }
 .cand.fav + .cand, .m-row.fav + .m-row { border-top-color: transparent; }
+.cand.sit-eleito, .cand.sit-suplente, .cand.sit-nao, .m-row.sit-eleito, .m-row.sit-suplente, .m-row.sit-nao { margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; }
+.cand.sit-eleito, .m-row.sit-eleito { background: var(--sit-eleito); box-shadow: inset 0 0 0 1px var(--sit-eleito-borda); }
+.cand.sit-suplente, .m-row.sit-suplente { background: var(--sit-suplente); box-shadow: inset 0 0 0 1px var(--sit-suplente-borda); }
+.cand.sit-nao, .m-row.sit-nao { background: var(--sit-nao); box-shadow: inset 0 0 0 1px var(--sit-nao-borda); }
+[class*="sit-"] + .cand, [class*="sit-"] + .m-row { border-top-color: transparent; }
+.list > [class*="sit-"] .tile { background: var(--surface); }
+[class*="sit-"] .c-actions .pill { background: var(--surface); }
 .cand.mudou { margin-inline: -12px; padding-inline: 12px; border-radius: 12px; border-top-color: transparent; box-shadow: inset 0 0 0 2px var(--good-dot); }
 .cand.mudou.warn { box-shadow: inset 0 0 0 2px var(--warn-dot); }
 .cand.mudou + .cand { border-top-color: transparent; }
@@ -198,8 +208,8 @@ h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; }
 .fav-vazio svg { width: 40px; height: 40px; fill: none; stroke: var(--bar); stroke-width: 1.6; stroke-linejoin: round; }
 .fav-vazio h2 { margin: 10px 0 6px; }
 .fav-vazio p { margin: 0 auto; max-width: 46ch; color: var(--ink-2); }
-.card.fav-grupo .list > .cand.fav, .card.fav-grupo .list > .m-row.fav { background: transparent; margin-inline: 0; padding-inline: 0; }
-.card.fav-grupo .fav .tile { background: var(--tile); }
+.card.fav-grupo .list > .cand.fav:not([class*="sit-"]), .card.fav-grupo .list > .m-row.fav:not([class*="sit-"]) { background: transparent; margin-inline: 0; padding-inline: 0; }
+.card.fav-grupo .fav:not([class*="sit-"]) .tile { background: var(--tile); }
 .totais { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); font-weight: 500; padding: 12px 0 14px; border-top: 1px dashed var(--line); margin-top: 4px; }
 .totais b { color: var(--ink-2); font-weight: 700; }
 
@@ -258,7 +268,7 @@ html.tv:not(.mexeu) { cursor: none; }
 .tvm-body { display: grid; gap: 1.2rem; min-height: 0; }
 .tvm-body.dep { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); }
 .tvm-body.maj { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
-.tvm-body.fav .tvm-row.fav { background: transparent; margin-inline: 0; padding-inline: 0; }
+.tvm-body.fav .tvm-row.fav:not([class*="sit-"]) { background: transparent; margin-inline: 0; padding-inline: 0; }
 .tvm-body.fav { grid-template-columns: repeat(auto-fit, minmax(min(100%, 40rem), 1fr)); align-items: start; align-content: start; }
 .tvm-col { display: grid; gap: 1.2rem; align-content: start; min-height: 0; }
 .tvm-card { background: var(--surface); border-radius: 1.2rem; box-shadow: var(--shadow); padding: .9rem 1.3rem .6rem; min-width: 0; min-height: 0; overflow: hidden; }
@@ -270,6 +280,12 @@ html.tv:not(.mexeu) { cursor: none; }
 .tvm-row { display: grid; align-items: center; gap: 0 .8rem; padding: .42rem 0; border-top: 1px solid var(--line); }
 .tvm-rows .tvm-row:first-child { border-top: 0; }
 .tvm-row.fav { background: var(--fav-bg); margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; }
+.tvm-row.sit-eleito, .tvm-row.sit-suplente, .tvm-row.sit-nao { margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; }
+.tvm-row.sit-eleito { background: var(--sit-eleito); box-shadow: inset 0 0 0 1px var(--sit-eleito-borda); }
+.tvm-row.sit-suplente { background: var(--sit-suplente); box-shadow: inset 0 0 0 1px var(--sit-suplente-borda); }
+.tvm-row.sit-nao { background: var(--sit-nao); box-shadow: inset 0 0 0 1px var(--sit-nao-borda); }
+.tvm-row[class*="sit-"] + .tvm-row { border-top-color: transparent; }
+.tvm-row[class*="sit-"] .pill { background: var(--surface); }
 .tvm-row.mudou { margin-inline: -.6rem; padding-inline: .6rem; border-radius: .7rem; border-top-color: transparent; box-shadow: inset 0 0 0 .15rem var(--good-dot); }
 .tvm-row.mudou.warn { box-shadow: inset 0 0 0 .15rem var(--warn-dot); }
 .tvm-row.fav + .tvm-row, .tvm-row.mudou + .tvm-row { border-top-color: transparent; }
@@ -608,6 +624,12 @@ function situacao(c, temVotos) {
   return [temVotos ? 'Em apuração' : 'Aguardando', ''];
 }
 
+// Cor do cartão inteiro pela situação oficial: verde (eleito), amarelo (suplente / 2º turno), vermelho (não eleito).
+function classeSituacao(c, res) {
+  if (!res || !c) return '';
+  const [txt, cls] = situacao(c, res.temVotos);
+  return cls === 'good' ? ' sit-eleito' : cls === 'warn' ? ' sit-suplente' : /n[aã]o eleito/i.test(txt) ? ' sit-nao' : '';
+}
 function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const c = uf && uf.mapa[numero];
   const m = mu && mu.mapa[numero];
@@ -616,7 +638,7 @@ function cartaoDeputado(cargo, nome, numero, uf, mu, max) {
   const largura = c && max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
   const pos = c && uf.temVotos ? ` · <b>${c.pos}º</b> no estado` : '';
   const av = avisoDe(cargo, numero);
-  return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+  return `<li class="cand${ehFav(cargo, numero) ? ' fav' : ''}${classeSituacao(c, uf)}${av ? ' mudou ' + av.tipo : ''}">
     <div class="c-top">
       <div><div class="c-name">${titulo(nome)}</div><div class="c-meta">${meta}</div></div>
       <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(cargo, numero, titulo(nome))}</div>
@@ -653,7 +675,7 @@ function cartaoAliadoFora(x, res) {
     urnas = res.secoes.feitas >= res.secoes.total ? '<b>Apuração concluída</b>'
       : `Faltam <b>${(100 - pst).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</b> · ${fmt(res.secoes.feitas)} de ${fmt(res.secoes.total)} urnas`;
   }
-  return `<li class="cand${ehFav(x.chave, x.numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+  return `<li class="cand${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
     <div class="c-top">
       <div><div class="c-name">${titulo(x.nome)}</div><div class="c-meta">nº <b>${x.numero}</b>${c ? ' · ' + c.partido : ''}</div></div>
       <div class="c-actions"><span class="pill ${cls}">${txt}</span>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
@@ -747,7 +769,7 @@ function linhaMajoritario(cd, cfg, c, mu, g, max) {
         const lider = mu.temVotos && c.pos === 1;
         const largura = max > 0 ? Math.max(c.vap / max * 100, c.vap > 0 ? 1.5 : 0) : 0;
         const extra = c.vice && cfg.vice ? ` · vice: ${titulo(c.vice)}` : '';
-        return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
+        return `<li class="m-row${lider ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}${classeSituacao(g && g.mapa[c.n], g)}">
           <div class="c-top">
             <div class="m-id">
               <div class="m-title"><span class="rank" title="Posição em ${nomeCidade()}">${mu.temVotos ? c.pos + 'º' : '–'}</span><span class="m-name">${titulo(c.nmu)}</span></div>
@@ -819,7 +841,7 @@ function linhaTVDeputado(cargo, nome, numero, uf, mu) {
   const av = avisoDe(cargo, numero);
   const v22 = cidade === CIDADE_PADRAO ? VOTOS_2022_NG[cargo + '-' + numero] : null;
   const det22 = cidade !== CIDADE_PADRAO ? '' : v22 ? ` · 2022: <b>${fmt(v22[0])}</b>` : ' · 2022: —';
-  return `<div class="tvm-row tvm-grid-dep${ehFav(cargo, numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+  return `<div class="tvm-row tvm-grid-dep${ehFav(cargo, numero) ? ' fav' : ''}${classeSituacao(c, uf)}${av ? ' mudou ' + av.tipo : ''}">
     <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(nome)}</b><span>nº ${numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(cargo, numero, titulo(nome))}</div>
     <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(uf, numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && uf.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
     <div class="tvm-num"><div class="v">${m ? fmt(m.vap) : '—'}${selo(mu, numero)}</div><small>${m ? '<b>' + m.pvap + '%</b>' : ''}${det22}</small></div>
@@ -841,7 +863,7 @@ function cartaoTVFora(x) {
   const av = avisoDe(x.chave, x.numero);
   return `<section class="tvm-card">
     <div class="tvm-card-head tvm-grid-dep"><div><h3>${x.titulo}</h3><div class="sub">Aliado em ${x.ufNome}${res && res.vagas ? ' · ' + res.vagas + ' vagas' : ''}</div></div><div class="tvm-colh">${x.ufNome}</div><div class="tvm-colh">Apuração em ${x.uf.toUpperCase()}</div><div class="tvm-colh" style="justify-self:end">Situação</div></div>
-    <div class="tvm-rows"><div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${av ? ' mudou ' + av.tipo : ''}">
+    <div class="tvm-rows"><div class="tvm-row tvm-grid-dep${ehFav(x.chave, x.numero) ? ' fav' : ''}${classeSituacao(c, res)}${av ? ' mudou ' + av.tipo : ''}">
       <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(x.nome)}</b><span>nº ${x.numero}${c ? ' · ' + c.partido : ''}</span></div>${botaoFav(x.chave, x.numero, titulo(x.nome))}</div>
       <div class="tvm-num"><div class="v">${c ? fmt(c.vap) : '—'}${selo(res, x.numero)}</div><small><b>${c ? c.pvap + '%' : '—'}</b>${c && res.temVotos ? ' · ' + c.pos + 'º no estado' : ''}</small></div>
       <div class="tvm-num"><div class="v">${res ? res.pst + '%' : '—'}</div><small>${res && res.secoes ? fmt(res.secoes.feitas) + ' de ' + fmt(res.secoes.total) + ' urnas' : ''}</small></div>
@@ -870,7 +892,7 @@ function cartaoTVMajMoldura(cd, corpo) {
 function linhaTVMaj(cd, c, mu, g) {
       const gc = g && g.mapa[c.n];
       const sg = seloGeral(g, c.n).replace('class="pill', 'class="pill mini');
-      return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}">
+      return `<div class="tvm-row tvm-grid-maj${mu.temVotos && c.pos === 1 ? ' lead' : ''}${ehFav(cd, c.n) ? ' fav' : ''}${classeSituacao(gc, g)}">
         <span class="tvm-rank">${mu.temVotos ? c.pos + 'º' : '–'}</span>
         <div class="tvm-nome"><div class="tvm-nome-txt"><b>${titulo(c.nmu)}</b><span>nº ${c.n} · ${c.partido}</span></div>${botaoFav(cd, c.n, titulo(c.nmu))}</div>
         <div class="tvm-num dir"><div class="v">${fmt(c.vap)}</div><small><b>${c.pvap}%</b>${selo(mu, c.n) ? ' · ' + selo(mu, c.n).replace(/<[^>]+>/g, '') : ''}</small></div>
