@@ -500,6 +500,8 @@ const ELE_FED = '6257';           // Eleição Federal 2026 (Presidente), 1º tu
 const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senador, Deputados), 1º turno
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
+// Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
+const VERSAO = '2026-10-04-2010';
 
 const CARGOS = {
   6: {
@@ -800,6 +802,19 @@ function mostrarFesta(f) {
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) animarFesta(dur);
   clearTimeout(festaTimer);
   festaTimer = setTimeout(fecharFesta, dur);
+}
+// A cada ~5 minutos confere se o site publicado tem uma versão nova desta página; se tiver, recarrega
+// (esperando a festa terminar). O modo TV, a aba e os favoritos continuam iguais depois de recarregar.
+async function verificarVersao() {
+  if (festaRodando || filaFesta.length) return;
+  try {
+    const r = await fetch(location.pathname + '?versao=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const m = (await r.text()).match(/const VERSAO = '([^']+)'/);
+    if (!m || m[1] === VERSAO || festaRodando) return;
+    try { if (modoTV) sessionStorage.setItem('apuracao-voltar-tv', document.fullscreenElement ? 'cheia' : '1'); } catch (e) {}
+    location.reload();
+  } catch (e) { /* sem conexão: tenta de novo daqui a 5 minutos */ }
 }
 function fecharFesta() {
   festaRodando = false;
@@ -1455,6 +1470,7 @@ async function atualizar() {
   mostrarAviso(erros);
   mostrarAvisosSituacao();
   verificarFesta();
+  if (ciclo % 5 === 0) verificarVersao();
   buscando = false;
   $('refresh').disabled = false;
   $('refresh').removeAttribute('aria-busy');
@@ -1612,7 +1628,11 @@ setInterval(() => {
 render();
 mostrarAvisosSituacao();
 // Abrir o link com #tv no fim já entra no modo TV (depois é só clicar em Tela cheia).
-if (location.hash.includes('tv')) entrarTV(false);
+// Depois de uma atualização automática, volta para o modo TV em que estava.
+const voltarTV = (() => { try { const v = sessionStorage.getItem('apuracao-voltar-tv'); sessionStorage.removeItem('apuracao-voltar-tv'); return v; } catch (e) { return null; } })();
+if (location.hash.includes('tv') || voltarTV) entrarTV(false);
+// Se estava em tela cheia, o navegador só deixa voltar com um toque: qualquer tecla ou clique restaura.
+if (voltarTV === 'cheia') { const volta = () => { if (modoTV) telaCheia(); removeEventListener('keydown', volta); removeEventListener('pointerdown', volta); }; addEventListener('keydown', volta); addEventListener('pointerdown', volta); }
 carregarMunicipios().then(() => { render(); atualizar(); });
 </script>
 </body>
