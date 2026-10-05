@@ -64,7 +64,7 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
   margin-inline: -16px; padding: 10px 16px;
   background: var(--bg-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
-.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
+.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
 .tab {
   display: flex; align-items: center; gap: 12px; text-align: left;
   font: inherit; color: var(--ink-2); background: transparent; border: 0; border-radius: 13px;
@@ -341,6 +341,42 @@ html.tv:not(.mexeu) .tvm-row .star { cursor: none; }
 
 footer a { color: var(--accent-ink); }
 
+/* Aba Eleitos em SP */
+.ele { display: grid; gap: 20px; }
+.ele-filtros { display: flex; flex-wrap: wrap; gap: 10px; }
+.ele-busca { flex: 1 1 260px; max-width: 440px; }
+.ele-busca input { font: inherit; font-weight: 600; color: var(--ink); border: 0; background: transparent; padding: 6px 4px; min-height: 34px; min-width: 0; flex: 1; outline: none; }
+.ele-filtros .field:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.el-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+.list .el-row:first-child { border-top: 0; }
+.el-nome { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
+.el-nums { display: grid; grid-template-columns: 118px 118px; gap: 12px; text-align: right; }
+.el-num b { display: block; font-size: 15px; font-weight: 800; color: var(--ink); }
+.el-num small { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.el-cab { padding: 6px 0; border-top: 0; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.el-cab + .el-row { border-top: 1px solid var(--line); }
+.el-row.nosso { background: var(--accent-soft); border-radius: 12px; padding-inline: 10px; margin-inline: -10px; border-top-color: transparent; }
+.el-row.nosso + .el-row { border-top-color: transparent; }
+.el-tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; padding: 1px 7px; border-radius: 6px; background: var(--surface); color: var(--accent-ink); margin-left: 6px; vertical-align: 1px; }
+.el-check { display: inline-grid; place-items: center; width: 30px; height: 26px; border-radius: 999px; background: var(--good-bg); color: var(--good); }
+.el-check svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.el-vazio { padding: 14px 0 18px; color: var(--muted); font-size: 14px; }
+.el-resumo { font-size: 14px; color: var(--ink-2); margin: 2px 0 8px; }
+.pt-blocos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 24px; padding-bottom: 12px; }
+.pt-bloco h3 { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 8px; }
+.pt-bloco h3 span { text-transform: none; letter-spacing: 0; font-weight: 600; }
+.pt-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 26px; gap: 8px; align-items: center; font-size: 13px; padding: 3px 0; }
+.pt-sg { font-weight: 700; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-bar { height: 10px; background: var(--bar-track); border-radius: 4px; overflow: hidden; }
+.pt-bar i { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
+.pt-row b { text-align: right; font-weight: 800; color: var(--ink); }
+@media (max-width: 560px) {
+  .el-row { grid-template-columns: 34px minmax(0, 1fr); }
+  .el-nums { grid-column: 2; grid-template-columns: 1fr 1fr; text-align: left; }
+  .el-cab { display: none; }
+  .el-cab + .el-row { border-top: 0; }
+}
+
 @media (max-width: 560px) {
   .wrap { padding-block: 18px 40px; gap: 14px; }
   .card { padding: 16px 16px 4px; border-radius: 16px; }
@@ -350,7 +386,7 @@ footer a { color: var(--accent-ink); }
   .tab svg { width: 20px; height: 20px; }
   .tab-title { font-size: 13.5px; }
   .tab-sub { font-size: 11px; }
-  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tab svg { display: none; }
   .tab-title { font-size: 12.5px; }
   .progress { gap: 10px; }
@@ -413,6 +449,10 @@ footer a { color: var(--accent-ink); }
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v7M9.5 10v7M14.5 10v7M19 10v7"/><path d="M3 20h18"/></svg>
         <span class="tab-text"><span class="tab-title">Presidente, Governo e Senado</span><span class="tab-sub" id="tab-maj-sub">votos na cidade</span></span>
       </button>
+      <button class="tab" role="tab" id="tab-ele" data-aba="ele" aria-controls="painel-ele" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.3 1.7 2.9-.2.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.2L12 20.8l-2.3-1.7-2.9.2-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.2z"/><path d="m8.6 12.1 2.3 2.3 4.5-4.7"/></svg>
+        <span class="tab-text"><span class="tab-title">Eleitos em SP</span><span class="tab-sub">Deputados, Senado e Governo</span></span>
+      </button>
       <button class="tab" role="tab" id="tab-fav" data-aba="fav" aria-controls="painel-fav" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>
         <span class="tab-text"><span class="tab-title">Favoritos</span><span class="tab-sub" id="tab-fav-sub">nenhum ainda</span></span>
@@ -462,6 +502,20 @@ footer a { color: var(--accent-ink); }
       <section class="card" id="sec-3"></section>
       <section class="card" id="sec-5"></section>
     </div>
+    <div class="ele" id="painel-ele" role="tabpanel" aria-labelledby="tab-ele" hidden>
+      <div class="grid">
+        <section class="card" id="ele-gov"></section>
+        <section class="card" id="ele-cadeiras"></section>
+      </div>
+      <div class="ele-filtros">
+        <div class="field ele-busca"><label for="ele-q">Buscar</label><input id="ele-q" type="search" placeholder="Nome ou partido" autocomplete="off" enterkeyhint="search"></div>
+        <div class="field"><label for="ele-ordem">Ordem</label><select id="ele-ordem"><option value="uf">Mais votados em SP</option><option value="mu" id="ele-ordem-mu">Mais votados na cidade</option></select></div>
+      </div>
+      <div class="grid">
+        <section class="card" id="ele-6"></section>
+        <section class="card" id="ele-7"></section>
+      </div>
+    </div>
     <div class="grid" id="painel-fav" role="tabpanel" aria-labelledby="tab-fav" hidden></div>
   </main>
 
@@ -507,7 +561,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-04-2300';
+const VERSAO = '2026-10-05-0010';
 
 const CARGOS = {
   6: {
@@ -574,6 +628,8 @@ const ARQUIVOS = {
 };
 ARQUIVOS.dep.push({ chave: 'mu-1', ele: ELE_FED, cargo: 1, nivel: 'mu' }, { chave: 'br-1', ele: ELE_FED, cargo: 1, nivel: 'br' });   // pequeno: diz se a cidade já começou a apurar
 ARQUIVOS.fav = ARQUIVOS.dep.concat(ARQUIVOS.maj);
+// Eleitos em SP: deputados, Governador e Senado no estado e na cidade escolhida (+ Brasil, por causa da festa).
+ARQUIVOS.ele = ['uf-3', 'uf-5', 'uf-6', 'uf-7', 'mu-3', 'mu-5', 'mu-6', 'mu-7', 'br-1'].map(k => ARQUIVOS.fav.find(a => a.chave === k));
 
 // ===== Estado =====
 const DEMO = location.hash.includes('demo');
@@ -601,7 +657,7 @@ function botaoFav(cargo, numero, nome) {
   return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${CORACAO}</button>`;
 }
 let aba = guardado('apuracao-aba', 'dep');
-if (!['dep', 'maj', 'fav'].includes(aba)) aba = 'dep';
+if (!['dep', 'maj', 'ele', 'fav'].includes(aba)) aba = 'dep';
 let municipios = [];
 const dados = {};            // chave -> { res, cidade, em }
 let ciclo = 0;               // conta as atualizações (para buscar deputados de vez em quando na outra aba)
@@ -1168,6 +1224,72 @@ function renderFavoritos() {
     ? grupos.map(([t, sub, itens]) => `<section class="card fav-grupo"><div class="card-head"><div><h2>${t}</h2><div class="vagas">${sub}</div></div></div><ul class="list">${itens}</ul></section>`).join('')
     : `<section class="card fav-vazio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg><h2>Nenhum favorito ainda</h2><p>Toque no coração ♡ de qualquer candidato nas abas <b>Nossos deputados</b> ou <b>Presidente, Governo e Senado</b>. Todos os marcados aparecem juntos aqui.</p></section>`;
 }
+// ===== Aba Eleitos em SP =====
+// Eleito = situação oficial do TSE ou, até ela sair, a dedução da página (deputados com 99% das urnas,
+// Senador com 100%, Governador pelo "matematicamente definido").
+const eleitosDe = (res) => res ? res.todos.filter(c => situacao(c, res.temVotos)[1] === 'good') : [];
+const semAcento = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const CHECK = '<span class="el-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
+function numEleito(c, mu, onde) {
+  const m = mu && mu.mapa[c.n];
+  return `<div class="el-nums"><div class="el-num"><b>${fmt(c.vap)}</b><small>${c.pvap}% em SP</small></div>`
+    + `<div class="el-num"><b>${m ? fmt(m.vap) : '—'}</b><small>${m ? m.pvap + '% em ' + onde : 'em ' + onde}</small></div></div>`;
+}
+function renderEleitos() {
+  const onde = nomeCidade();
+  $('ele-ordem-mu').textContent = 'Mais votados em ' + onde;
+  // Governador e Senado
+  const linhasGS = [];
+  for (const [cd, nomeCargo] of [[3, 'Governador'], [5, 'Senador']]) {
+    const g = pega('uf-' + cd), mu = pega('mu-' + cd);
+    if (!g) continue;
+    const el = eleitosDe(g);
+    const turno = el.length ? [] : g.todos.filter(c => situacao(c, g.temVotos)[1] === 'warn');
+    for (const c of el.concat(turno)) {
+      const st = situacao(c, g.temVotos)[0];
+      linhasGS.push(`<li class="el-row">${el.includes(c) ? CHECK : '<span class="rank">2º t.</span>'}<div><div class="el-nome">${titulo(c.nmu)}</div><div class="c-meta"><b>${nomeCargo}</b> · nº ${c.n} · ${c.partido}${st && st !== 'Eleito' ? ' · ' + st : ''}</div></div>${numEleito(c, mu, onde)}</li>`);
+    }
+    if (!el.length && !turno.length) linhasGS.push(`<li class="el-vazio">${nomeCargo}: o TSE ainda não definiu o resultado.</li>`);
+  }
+  $('ele-gov').innerHTML = `<div class="card-head"><div><h2>Governo e Senado</h2><div class="vagas">Eleitos por São Paulo</div></div></div>`
+    + (linhasGS.length ? `<ul class="list">${linhasGS.join('')}</ul>` : '<div class="el-vazio">Carregando…</div>');
+
+  // Cadeiras por partido
+  const blocos = [[6, 'Câmara dos Deputados', 'bancada de SP'], [7, 'Assembleia Legislativa', 'Alesp'], [5, 'Senado', 'vagas de SP em 2026']].map(([cd, nome, sub]) => {
+    const res = pega('uf-' + cd), el = eleitosDe(res);
+    if (!res) return '';
+    const total = res.vagas || el.length;
+    if (!el.length) return `<div class="pt-bloco"><h3>${nome} <span>· ${sub}</span></h3><div class="el-vazio">Ainda não definido</div></div>`;
+    const cont = {};
+    for (const c of el) cont[c.partido] = (cont[c.partido] || 0) + 1;
+    const ord = Object.entries(cont).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const max = ord[0][1];
+    return `<div class="pt-bloco"><h3>${nome} <span>· ${el.length} de ${total} ${sub}</span></h3>`
+      + ord.map(([sg, n]) => `<div class="pt-row" title="${sg}: ${n} ${n === 1 ? 'cadeira' : 'cadeiras'} em ${nome}"><span class="pt-sg">${sg}</span><span class="pt-bar"><i style="width:${n / max * 100}%"></i></span><b>${n}</b></div>`).join('') + '</div>';
+  }).join('');
+  $('ele-cadeiras').innerHTML = `<div class="card-head"><div><h2>Cadeiras por partido</h2><div class="vagas">Quantos eleitos cada partido fez em SP</div></div></div><div class="pt-blocos">${blocos || '<div class="el-vazio">Carregando…</div>'}</div>`;
+
+  // Deputados eleitos
+  const q = semAcento($('ele-q').value.trim());
+  const porCidade = $('ele-ordem').value === 'mu';
+  for (const cd of [6, 7]) {
+    const res = pega('uf-' + cd), mu = pega('mu-' + cd), cfg = CARGOS[cd];
+    const box = $('ele-' + cd);
+    const head = (extra) => `<div class="card-head"><div><h2>${cfg.titulo}</h2><div class="vagas">${extra}</div></div></div>`;
+    if (!res) { box.innerHTML = head('Carregando…'); continue; }
+    const nossos = new Set([...cfg.principais, ...cfg.conhecimento].map(([, n]) => n));
+    const vm = (c) => (mu && mu.mapa[c.n] ? mu.mapa[c.n].vap : 0);
+    const el = eleitosDe(res).slice().sort((a, b) => porCidade ? vm(b) - vm(a) || b.vap - a.vap : b.vap - a.vap);
+    if (!el.length) { box.innerHTML = head(`${res.vagas} vagas · apurado ${res.pst}%`) + '<div class="el-vazio">O resultado ainda não está definido. Os eleitos aparecem aqui a partir de 99% das urnas apuradas no estado.</div>'; continue; }
+    const linhas = el.map((c, i) => [i + 1, c]).filter(([, c]) => !q || semAcento(c.nmu + ' ' + c.partido + ' ' + c.n).includes(q)).map(([pos, c]) => {
+      const st = c.st && c.st !== 'Eleito' ? ' · ' + c.st : '';
+      return `<li class="el-row${nossos.has(c.n) ? ' nosso' : ''}"><span class="rank">${pos}º</span><div><div class="el-nome">${titulo(c.nmu)}${nossos.has(c.n) ? '<span class="el-tag">nosso</span>' : ''}</div><div class="c-meta">nº ${c.n} · ${c.partido}${st}</div></div>${numEleito(c, mu, onde)}</li>`;
+    });
+    box.innerHTML = head(`${el.length} eleitos de ${res.vagas} vagas · ${porCidade ? 'mais votados em ' + onde : 'mais votados em SP'}`)
+      + `<ul class="list"><li class="el-row el-cab" aria-hidden="true"><span></span><span>Eleito</span><div class="el-nums"><span>São Paulo</span><span>${onde}</span></div></li>`
+      + (linhas.length ? linhas.join('') : '<li class="el-vazio">Nenhum eleito com esse nome ou partido.</li>') + '</ul>';
+  }
+}
 function contarFavoritos() {
   const n = favoritos.size;
   $('tab-fav-sub').textContent = n === 0 ? 'nenhum ainda' : n === 1 ? '1 candidato' : n + ' candidatos';
@@ -1367,18 +1489,20 @@ function render() {
   $('painel-dep').hidden = aba !== 'dep';
   $('painel-maj').hidden = aba !== 'maj';
   $('painel-fav').hidden = aba !== 'fav';
+  $('painel-ele').hidden = aba !== 'ele';
   $('tab-maj-sub').textContent = 'votos em ' + nomeCidade();
   contarFavoritos();
-  if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else renderFavoritos();
+  if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else if (aba === 'ele') renderEleitos(); else renderFavoritos();
 
-  const br = aba !== 'dep' ? pega('br-1') : null;
+  const soSP = aba === 'dep' || aba === 'ele';   // abas sem Brasil/Exterior
+  const br = !soSP ? pega('br-1') : null;
   // Cada cargo é totalizado no seu ritmo: o quadro mostra o mais adiantado entre os cargos da aba.
-  const uf = maisAvancado(aba === 'dep' ? ['uf-6', 'uf-7'] : ['uf-3', 'uf-5', 'uf-6', 'uf-7']);
-  const mu = maisAvancado(aba === 'dep' ? ['mu-6', 'mu-7'] : ['mu-1', 'mu-3', 'mu-5', 'mu-6', 'mu-7']);
-  $('prog-br').hidden = aba === 'dep';
-  $('prog-zz').hidden = aba === 'dep';
-  $('progress').classList.toggle('quatro', aba !== 'dep');
-  preencherAndamento('zz', aba !== 'dep' ? pega('zz-1') : null);
+  const uf = maisAvancado(soSP ? ['uf-6', 'uf-7'] : ['uf-3', 'uf-5', 'uf-6', 'uf-7']);
+  const mu = maisAvancado(soSP ? ['mu-6', 'mu-7'] : ['mu-1', 'mu-3', 'mu-5', 'mu-6', 'mu-7']);
+  $('prog-br').hidden = soSP;
+  $('prog-zz').hidden = soSP;
+  $('progress').classList.toggle('quatro', !soSP);
+  preencherAndamento('zz', !soSP ? pega('zz-1') : null);
   preencherAndamento('br', br);
   preencherAndamento('uf', uf);
   preencherAndamento('mu', mu);
@@ -1619,11 +1743,13 @@ document.addEventListener('click', (ev) => {
 });
 document.querySelector('.tabs').addEventListener('keydown', (ev) => {
   if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
-  const ordem = ['dep', 'maj', 'fav'];
-  trocarAba(ordem[(ordem.indexOf(aba) + (ev.key === 'ArrowRight' ? 1 : 2)) % 3]);
+  const ordem = ['dep', 'maj', 'ele', 'fav'];
+  trocarAba(ordem[(ordem.indexOf(aba) + (ev.key === 'ArrowRight' ? 1 : ordem.length - 1)) % ordem.length]);
   document.querySelector(`.tab[data-aba="${aba}"]`).focus();
 });
 $('refresh').addEventListener('click', atualizar);
+$('ele-q').addEventListener('input', renderEleitos);
+$('ele-ordem').addEventListener('change', renderEleitos);
 $('btn-tv').addEventListener('click', () => entrarTV(true));
 $('tvm-full').addEventListener('click', telaCheia);
 $('tvm-sair').addEventListener('click', sairTV);
