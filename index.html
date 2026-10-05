@@ -507,7 +507,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-04-2140';
+const VERSAO = '2026-10-04-2300';
 
 const CARGOS = {
   6: {
@@ -694,17 +694,19 @@ function lerResultado(json, nivel) {
     if (json.md === 'e') { todos[0].st = 'Eleito'; todos[0].e = 's'; }
     if (json.md === 's') { todos[0].st = '2º turno'; todos[1].st = '2º turno'; }
   }
-  // Com 100% das urnas apuradas o resultado já está fechado, mas o TSE só preenche a situação de cada candidato
-  // quando finaliza a totalização, o que pode levar horas. Até lá a página deduz pela própria apuração do TSE:
-  // Senador → os mais votados, até o nº de vagas, estão eleitos. Deputado → dentro das vagas que o partido ou a
-  // federação fez = eleito; fora delas = suplente (se a legenda fez vaga) ou não eleito. A situação oficial,
-  // quando vier, substitui esta. (Arquivo de cidade não conta: as vagas são decididas no estado.)
+  // O TSE só preenche a situação de cada candidato quando finaliza a totalização, o que pode levar horas.
+  // Até lá a página deduz pela própria apuração do TSE:
+  // Deputado (a partir de 99% das urnas) → dentro das vagas que o partido ou a federação fez = eleito; fora delas =
+  // suplente (se a legenda fez vaga) ou não eleito. Senador (com 100% das urnas) → os mais votados, até o nº de
+  // vagas, estão eleitos. A situação oficial, quando vier, substitui esta. (Arquivo de cidade não conta: as vagas
+  // são decididas no estado.)
   const fechado = json.s && toNum(json.s.ts) > 0 && toNum(json.s.st) >= toNum(json.s.ts);
-  if (carg && nivel !== 'mu' && fechado && todos.length && !todos.some(d => d.st)) {
+  const quaseFechado = json.s && toNum(json.s.ts) > 0 && toNum(json.s.st) >= toNum(json.s.ts) * 0.99;
+  if (carg && nivel !== 'mu' && todos.length && !todos.some(d => d.st)) {
     const nv = toNum(carg.nv), proporcional = todos.some(d => d.vagasLegenda > 0);
-    if (proporcional) {
+    if (proporcional && quaseFechado) {
       for (const d of todos) d.st = d.posLista <= d.vagasLegenda ? 'Eleito' : d.vagasLegenda > 0 ? 'Suplente' : 'Não eleito';
-    } else if (nv > 1) {
+    } else if (!proporcional && nv > 1 && fechado) {
       todos.forEach((d, i) => { d.st = i < nv ? 'Eleito' : 'Não eleito'; });
     }
     for (const d of todos) if (d.st === 'Eleito') d.e = 's';
