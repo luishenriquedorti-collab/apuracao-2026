@@ -384,6 +384,17 @@ footer a { color: var(--accent-ink); }
 .sec-top { font-size: 13px; }
 .sec-nota { padding-top: 2px; }
 .sec .sm { display: none; }
+.sec-mapa-wrap { display: grid; gap: 8px; }
+.sec-mapa { height: 520px; border-radius: 14px; overflow: hidden; background: var(--tile); z-index: 0; }
+.sec-mapa .leaflet-tile-pane { filter: saturate(0.45) brightness(1.04) contrast(0.95); }
+.sec-todo { font: 700 12px var(--font); background: var(--surface); color: var(--accent-ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 0; box-shadow: var(--shadow); cursor: pointer; }
+.sec-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.sec-leg span { display: inline-flex; align-items: center; gap: 6px; }
+.sec-tab td[data-lk] { cursor: pointer; }
+.sec-tab td[data-lk]:hover { color: var(--accent-ink); }
+.sec-dica, .sec-pop .leaflet-popup-content { font: 13px/1.4 var(--font); }
+.sec-pop .leaflet-popup-content { margin: 10px 12px; min-width: 190px; }
+.sec-pop .tip-l, .sec-dica .tip-l { gap: 10px; }
 @media (max-width: 640px) {
   .sec-tab { font-size: 13px; }
   .sec-tab th, .sec-tab td { padding: 8px 5px; }
@@ -392,6 +403,7 @@ footer a { color: var(--accent-ink); }
   .sec-tab td .marg { gap: 4px; }
   .sec .lg { display: none; } .sec .sm { display: inline; }
   .sec-tab .sec-sub { font-size: 11px; }
+  .sec-mapa { height: 320px; }
   .sec-ctl .field { flex: 1 1 100%; max-width: none; }
   .sec-ctl select { max-width: none; flex: 1; }
 }
@@ -855,7 +867,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-06-2030';
+const VERSAO = '2026-10-06-2130';
 
 const CARGOS = {
   6: {
@@ -2774,7 +2786,9 @@ async function renderSec(box, ctx) {
   const chave = `${ctx.uf}-${ctx.cd}-${ctx.turno}`;
   if (st.chave !== chave) { st.chave = chave; st.zona = ''; st.cand = null; }
   let loc;
-  try { loc = await locaisDe(ctx.uf, ctx.cd); } catch (e) { box.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)}</div></div></div><div class="el-vazio">Não encontrei o cadastro de locais de votação desta cidade.</div>`; return; }
+  if (!box.querySelector('.sec-top')) box.innerHTML = `<div class="sec-top"></div><div class="sec-mapa-wrap" hidden><div class="sec-mapa" role="region" aria-label="Mapa das escolas"></div><div class="sec-leg"></div></div><div class="sec-baixo"></div>`;
+  const topo = box.querySelector('.sec-top'), baixo = box.querySelector('.sec-baixo');
+  try { loc = await locaisDe(ctx.uf, ctx.cd); } catch (e) { topo.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)}</div></div></div><div class="el-vazio">Não encontrei o cadastro de locais de votação desta cidade.</div>`; baixo.innerHTML = ''; box.querySelector('.sec-mapa-wrap').hidden = true; return; }
   if (st.chave !== chave) return;
   const ele = ctx.turno === '2' ? (st.cargo === 1 ? '6258' : '6260') : (st.cargo === 1 ? '6257' : '6259');
   const pleito = await pleitoDe(ele);
@@ -2819,7 +2833,7 @@ async function renderSec(box, ctx) {
     for (const [s, r] of ok) {
       const lk = s[0] + '-' + s[2], l = loc.l[lk] || ['Local ' + s[2], '', '', null, null];
       const k = st.visao === 'escola' ? lk : st.visao === 'bairro' ? (l[1] || 'Sem bairro') : s[0] + '-' + s[1];
-      const g = grupos.get(k) || { nome: st.visao === 'escola' ? l[0] : st.visao === 'bairro' ? (l[1] || 'Sem bairro') : `${s[0]}ª zona · seção ${s[1]}`, sub: st.visao === 'escola' ? l[2] : st.visao === 'secao' ? l[0] : '', bairro: l[1], el: 0, secs: [], escolas: new Set() };
+      const g = grupos.get(k) || { lk: st.visao === 'bairro' ? null : lk, nome: st.visao === 'escola' ? l[0] : st.visao === 'bairro' ? (l[1] || 'Sem bairro') : `${s[0]}ª zona · seção ${s[1]}`, sub: st.visao === 'escola' ? l[2] : st.visao === 'secao' ? l[0] : '', bairro: l[1], el: 0, secs: [], escolas: new Set() };
       g.el += s[3]; g.secs.push(r); g.escolas.add(lk);
       grupos.set(k, g);
     }
@@ -2849,22 +2863,135 @@ async function renderSec(box, ctx) {
       const va = linhas.filter(l => l.a > l.b).length, vb = linhas.filter(l => l.b > l.a).length;
       const nomeG = (n) => n + ' ' + (st.visao === 'escola' ? (n === 1 ? 'escola' : 'escolas') : st.visao === 'bairro' ? (n === 1 ? 'bairro' : 'bairros') : (n === 1 ? 'seção' : 'seções'));
       resumo = `<div class="sec-resumo"><span><i class="sw ${pal.sa}"></i><b>${esc(na[0])}</b> ${pc(tot.validos ? a / tot.validos * 100 : 0)} · ${fmt(a)} votos · na frente em <b>${nomeG(va)}</b></span><span><i class="sw ${pal.sb}"></i><b>${esc(nb[0])}</b> ${pc(tot.validos ? b / tot.validos * 100 : 0)} · ${fmt(b)} votos · na frente em <b>${nomeG(vb)}</b></span></div>`;
-      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('a', esc(na[0].split(' ').pop()))}${th('b', esc(nb[0].split(' ').pop()))}${th('dif', '<span class="lg">Diferença</span><span class="sm">Dif.</span>')}</tr></thead><tbody>${linhas.map(l => `<tr><td class="uf-n">${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td><b>${fmt(l.a)}</b> <small>${pc(l.pa)}</small></td><td><b>${fmt(l.b)}</b> <small>${pc(l.pb)}</small></td><td><span class="marg"><i class="sw ${l.dif >= 0 ? pal.sa : pal.sb}"></i>${ppTxt(l.dif).replace(' p.p.', '<span class="lg"> p.p.</span>')}</span></td></tr>`).join('')}</tbody></table>`;
+      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('a', esc(na[0].split(' ').pop()))}${th('b', esc(nb[0].split(' ').pop()))}${th('dif', '<span class="lg">Diferença</span><span class="sm">Dif.</span>')}</tr></thead><tbody>${linhas.map(l => `<tr><td class="uf-n"${l.g.lk ? ` data-lk="${l.g.lk}"` : ''}>${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td><b>${fmt(l.a)}</b> <small>${pc(l.pa)}</small></td><td><b>${fmt(l.b)}</b> <small>${pc(l.pb)}</small></td><td><span class="marg"><i class="sw ${l.dif >= 0 ? pal.sa : pal.sb}"></i>${ppTxt(l.dif).replace(' p.p.', '<span class="lg"> p.p.</span>')}</span></td></tr>`).join('')}</tbody></table>`;
     } else {
       const [nc] = ctx.nome(st.cargo, st.cand);
       const v = tot.v[st.cand] || 0;
       const melhor = linhas.slice().sort((x, y) => y.v - x.v)[0];
       resumo = `<div class="sec-resumo"><span><b>${esc(nc)}</b> teve <b>${fmt(v)}</b> votos em ${esc(ctx.cidade)}${grande ? ` (${st.zona}ª zona)` : ''} · ${pc(tot.validos ? v / tot.validos * 100 : 0)} dos válidos</span>${melhor && melhor.v ? `<span>Mais votos em: <b>${esc(nomeLocal(melhor.nome))}</b> (${fmt(melhor.v)} · ${pc(melhor.p)})</span>` : ''}</div>`;
-      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('comp', 'Votantes', 'col-op')}${th('v', 'Votos')}${th('p', '% válidos')}${th('pos', 'Posição', 'col-op')}<th scope="col" class="col-op">Mais votado aqui</th></tr></thead><tbody>${linhas.map(l => { const top = l.top ? ctx.nome(st.cargo, l.top) : ['—', '']; return `<tr><td class="uf-n">${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td class="col-op">${fmt(l.comp)}</td><td><b>${fmt(l.v)}</b></td><td>${pc(l.p)}</td><td class="col-op">${l.v ? l.pos + 'º' : '—'}</td><td class="col-op sec-top">${esc(top[0])} <small>${fmt(l.topV || 0)}</small></td></tr>`; }).join('')}</tbody></table>`;
+      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('comp', 'Votantes', 'col-op')}${th('v', 'Votos')}${th('p', '% válidos')}${th('pos', 'Posição', 'col-op')}<th scope="col" class="col-op">Mais votado aqui</th></tr></thead><tbody>${linhas.map(l => { const top = l.top ? ctx.nome(st.cargo, l.top) : ['—', '']; return `<tr><td class="uf-n"${l.g.lk ? ` data-lk="${l.g.lk}"` : ''}>${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td class="col-op">${fmt(l.comp)}</td><td><b>${fmt(l.v)}</b></td><td>${pc(l.p)}</td><td class="col-op">${l.v ? l.pos + 'º' : '—'}</td><td class="col-op sec-top">${esc(top[0])} <small>${fmt(l.topV || 0)}</small></td></tr>`; }).join('')}</tbody></table>`;
     }
   }
   const nLocais = new Set(secoes.map(s => s[0] + '-' + s[2])).size;
-  box.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)} · ${fmt(nLocais)} locais de votação · ${fmt(secoes.length)} urnas${grande ? ` na ${st.zona}ª zona (a cidade tem ${fmt(loc.s.length)})` : ''} · ${ctx.turno}º turno${ctx.dica ? ' · ' + ctx.dica : ''}</div></div>${turnoSeg}</div>
-    <div class="sec-ctl">${cargoSel}${candSel}${zonaSel}${visaoSeg}</div>${status}${resumo}${tabela ? `<div class="tab-wrap">${tabela}</div>` : ''}
-    ${ok.length ? '<div class="nota2 sec-nota">Votos lidos dos boletins de urna publicados pelo TSE. "% válidos" = votos do candidato ÷ (votos nominais + de legenda) naquele lugar.</div>' : ''}`;
+  topo.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)} · ${fmt(nLocais)} locais de votação · ${fmt(secoes.length)} urnas${grande ? ` na ${st.zona}ª zona (a cidade tem ${fmt(loc.s.length)})` : ''} · ${ctx.turno}º turno${ctx.dica ? ' · ' + ctx.dica : ''}</div></div>${turnoSeg}</div>
+    <div class="sec-ctl">${cargoSel}${candSel}${zonaSel}${visaoSeg}</div>${status}${resumo}`;
+  baixo.innerHTML = `${tabela ? `<div class="tab-wrap">${tabela}</div>` : ''}
+    ${ok.length ? '<div class="nota2 sec-nota">Votos lidos dos boletins de urna publicados pelo TSE. "% válidos" = votos do candidato ÷ (votos nominais + de legenda) naquele lugar. Toque numa escola da tabela para vê-la no mapa.</div>' : ''}`;
+  // mapa da cidade com as escolas
+  const pontos = new Map();
+  for (const [s, r] of ok) {
+    const lk = s[0] + '-' + s[2], l = loc.l[lk];
+    if (!l) continue;
+    const p = pontos.get(lk) || { lk, nome: l[0], bairro: l[1], end: l[2], lat: l[3], lon: l[4], secs: [] };
+    p.secs.push(r); pontos.set(lk, p);
+  }
+  desenharMapaSec(box, ctx, [...pontos.values()].map(p => {
+    const t = grupoVotos(p.secs, st.cargo);
+    const cab = `<b>${esc(nomeLocal(p.nome))}</b><br><span class="tip-s">${esc(titulo(p.bairro || ''))} · ${p.secs.length} ${p.secs.length === 1 ? 'urna' : 'urnas'}</span>`;
+    if (duelo) {
+      const a = t.v[duelo[0]] || 0, b = t.v[duelo[1]] || 0, pal = st.cargo === 1 ? PAL.p : PAL.g;
+      const [na, nb] = [ctx.nome(st.cargo, duelo[0]), ctx.nome(st.cargo, duelo[1])];
+      return { ...p, peso: a + b, cor: corDe({ a, b }, pal), dica: `${cab}<div class="tip-l"><span><i class="sw ${pal.sa}"></i>${esc(na[0])}</span><b>${fmt(a)} · ${pc(t.validos ? a / t.validos * 100 : 0)}</b></div><div class="tip-l"><span><i class="sw ${pal.sb}"></i>${esc(nb[0])}</span><b>${fmt(b)} · ${pc(t.validos ? b / t.validos * 100 : 0)}</b></div>` };
+    }
+    const v = t.v[st.cand] || 0, pct = t.validos ? v / t.validos * 100 : 0;
+    return { ...p, peso: v, pct, dica: `${cab}<div class="tip-l"><span>${esc(ctx.nome(st.cargo, st.cand)[0])}</span><b>${fmt(v)} votos · ${pc(pct)}</b></div>` };
+  }), duelo ? (st.cargo === 1 ? 'p' : 'g') : null, duelo ? [ctx.nome(st.cargo, duelo[0])[0], ctx.nome(st.cargo, duelo[1])[0]] : [ctx.nome(st.cargo, st.cand)[0]]);
   // carrega sozinho as cidades pequenas
   const auto = `${chave}-${st.zona}-${pleito}`;
   if (pleito && !carregando && !ok.length && !faltam && secoes.length <= URNAS_AUTO && st.tentou !== auto) { st.tentou = auto; secCarregar(box, ctx); }
+}
+// Mapa de ruas (Leaflet + CARTO/OpenStreetMap), carregado só quando precisa.
+let leafletPronto = null, ibgeDe = null;
+const secMapas = {};
+function carregarLeaflet() {
+  if (window.L) return Promise.resolve();
+  return leafletPronto || (leafletPronto = new Promise((ok, erro) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    js.onload = ok; js.onerror = () => { leafletPronto = null; erro(); };
+    document.head.appendChild(js);
+  }));
+}
+const SEQ_AZUL = ['#cde2fb', '#86b6ef', '#2a78d6', '#104281'];
+async function desenharMapaSec(box, ctx, pontos, duelo, nomes) {
+  const wrap = box.querySelector('.sec-mapa-wrap');
+  const comXY = pontos.filter(p => p.lat != null && p.lon != null && Math.abs(p.lat) > 0.01);
+  if (!comXY.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  try { await carregarLeaflet(); } catch (e) { wrap.hidden = true; return; }
+  const el = wrap.querySelector('.sec-mapa');
+  let m = secMapas[ctx.id];
+  if (m && m.el !== el) { m.map.remove(); m = null; }
+  if (!m) {
+    const map = L.map(el, { scrollWheelZoom: false, zoomControl: true });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(map);
+    m = secMapas[ctx.id] = { map, el, cidade: null, camada: null, contorno: null, marc: {}, mexeu: false, nPts: 0 };
+    map.on('dragstart', () => { m.mexeu = true; });
+    el.addEventListener('wheel', () => { m.mexeu = true; }, { passive: true });
+    el.addEventListener('click', (e) => { if (e.target.closest('.leaflet-control-zoom, .sec-todo')) m.mexeu = true; });
+    // botão para ver a cidade toda (o mapa abre focado na área com mais escolas)
+    const Todo = L.Control.extend({ options: { position: 'topright' }, onAdd: () => { const b = L.DomUtil.create('button', 'sec-todo'); b.type = 'button'; b.textContent = 'Cidade toda'; L.DomEvent.on(b, 'click', (e) => { L.DomEvent.stop(e); if (m.tudo) m.map.fitBounds(m.tudo, { padding: [16, 16] }); }); return b; } });
+    map.addControl(new Todo());
+  }
+  m.map.invalidateSize();
+  const chaveCid = ctx.uf + '-' + ctx.cd;
+  const novaCidade = m.cidade !== chaveCid;
+  if (novaCidade) { m.mexeu = false; m.nPts = 0; if (m.contorno) { m.map.removeLayer(m.contorno); m.contorno = null; } }
+  // enquadra de novo quando chegam mais escolas (durante a carga), a não ser que a pessoa já tenha mexido no mapa
+  if (novaCidade || (!m.mexeu && comXY.length > m.nPts)) {
+    m.nPts = comXY.length;
+    // abre na área onde está a maioria das escolas (distritos afastados ficam a um toque em "Cidade toda")
+    const cLat = comXY.map(p => p.lat).sort((a, b) => a - b)[Math.floor(comXY.length / 2)], cLon = comXY.map(p => p.lon).sort((a, b) => a - b)[Math.floor(comXY.length / 2)];
+    const dist = (p) => Math.hypot(p.lat - cLat, (p.lon - cLon) * Math.cos(cLat * Math.PI / 180));
+    const ds = comXY.map(dist).sort((a, b) => a - b), lim = Math.max(0.015, ds[Math.floor(ds.length / 2)] * 3);   // ~1,5 km no mínimo
+    const nucleo = comXY.filter(p => dist(p) <= lim);
+    if (!m.contorno) m.tudo = L.latLngBounds(comXY.map(p => [p.lat, p.lon])).pad(0.15);
+    m.map.fitBounds(L.latLngBounds(nucleo.map(p => [p.lat, p.lon])).pad(0.25), { maxZoom: 16 });
+  }
+  if (novaCidade) {
+    m.cidade = chaveCid;
+    (async () => {   // contorno oficial da cidade (IBGE)
+      try {
+        if (!ibgeDe) ibgeDe = await (await fetch('mapas/ibge.json')).json();
+        const g = await (await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/municipios/${ibgeDe[ctx.cd]}?formato=application/vnd.geo%2Bjson&qualidade=intermediaria`)).json();
+        if (m.cidade !== chaveCid) return;
+        m.contorno = L.geoJSON(g, { style: { color: '#1c2433', weight: 1.5, opacity: 0.5, fill: false, dashArray: '5 5' }, interactive: false }).addTo(m.map);
+        m.tudo = m.contorno.getBounds().pad(0.05);
+      } catch (e) { /* sem contorno, segue só com as escolas */ }
+    })();
+  }
+  // cor: no duelo, quem está na frente e por quanto; com um candidato, a força dele (% dos válidos) em 4 faixas
+  let faixas = null;
+  if (!duelo) {
+    const ps = comXY.filter(p => p.peso > 0).map(p => p.pct).sort((a, b) => a - b);
+    const q = (f) => ps.length ? ps[Math.min(ps.length - 1, Math.floor(f * ps.length))] : 0;
+    faixas = [q(0.25), q(0.5), q(0.75)];
+    for (const p of comXY) p.cor = p.peso > 0 ? SEQ_AZUL[faixas.filter(f => p.pct >= f).length] : '#c3c8d2';
+  }
+  if (m.camada) m.map.removeLayer(m.camada);
+  const maxV = Math.max(1, ...comXY.map(p => p.peso));
+  m.marc = {};
+  m.camada = L.layerGroup(comXY.slice().sort((a, b) => b.peso - a.peso).map(p => {
+    const mk = L.circleMarker([p.lat, p.lon], { radius: 5 + 15 * Math.sqrt(p.peso / maxV), color: '#ffffff', weight: 1.5, fillColor: p.cor, fillOpacity: 0.88 });
+    mk.bindTooltip(p.dica, { direction: 'top', className: 'sec-dica' });
+    mk.bindPopup(p.dica, { className: 'sec-pop' });
+    m.marc[p.lk] = mk;
+    return mk;
+  })).addTo(m.map);
+  const semXY = pontos.length - comXY.length;
+  wrap.querySelector('.sec-leg').innerHTML = duelo
+    ? `<span><i class="sw ${PAL[duelo].sa}"></i>${esc(nomes[0])} na frente</span><span><i class="sw ${PAL[duelo].sb}"></i>${esc(nomes[1])} na frente</span><span>Cor mais forte = vantagem maior · círculo maior = mais votos</span>${semXY ? `<span>${semXY} ${semXY === 1 ? 'escola sem localização' : 'escolas sem localização'}</span>` : ''}`
+    : `<span>${esc(nomes[0])} · % dos válidos em cada escola:</span>${SEQ_AZUL.map((c, i) => `<span><i class="sw" style="background:${c}"></i>${i === 0 ? 'até ' + pc(faixas[0]) : i === 3 ? 'acima de ' + pc(faixas[2]) : pc(faixas[i - 1]) + ' a ' + pc(faixas[i])}</span>`).join('')}<span>Círculo maior = mais votos</span>${semXY ? `<span>${semXY} ${semXY === 1 ? 'escola sem localização' : 'escolas sem localização'}</span>` : ''}`;
+}
+function focarEscola(id, lk, box) {
+  const m = secMapas[id], mk = m && m.marc[lk];
+  if (!mk) return;
+  box.querySelector('.sec-mapa-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  m.map.setView(mk.getLatLng(), Math.max(m.map.getZoom(), 15));
+  mk.openPopup();
 }
 async function secCarregar(box, ctx) {
   const st = secEstado[ctx.id], loc = await locaisDe(ctx.uf, ctx.cd);
@@ -2896,6 +3023,8 @@ function ligarSec(box, ctxFn) {
     const t = ev.target.closest('[data-sec-turno]');
     if (t) { secTurno2 = t.dataset.secTurno; renderSec(box, ctxFn()); return; }
     if (ev.target.closest('[data-sec-carregar]')) secCarregar(box, ctx);
+    const lk = ev.target.closest('[data-lk]');
+    if (lk) focarEscola(ctx.id, lk.dataset.lk, box);
   });
 }
 
