@@ -598,30 +598,43 @@ footer a { color: var(--accent-ink); }
   .turnos button { padding: 6px 13px; font-size: 13px; }
 }
 
-/* Modo TV do 2º turno: tudo numa tela só */
-html.tv2 .wrap { max-width: none; padding: 14px 22px; gap: 12px; }
-html.tv2 .t2 { gap: 12px; height: calc(100vh - 92px); grid-template-rows: auto minmax(0, 1fr) auto; }
-html.tv2 #t2-resumo, html.tv2 #t2-estados, html.tv2 .t2 footer, html.tv2 .mapa-ctl, html.tv2 .turnos { display: none; }
-html.tv2 .hero { padding: 14px 22px; gap: 10px; }
-html.tv2 .hero-nota, html.tv2 .leg-nota, html.tv2 .lado .nota2:last-child { display: none; }
-html.tv2 .dc-pct { font-size: 60px; margin-top: 2px; }
-html.tv2 .dc-meta { display: none; }
-html.tv2 .hero-fatos .fato b { font-size: 17px; }
-html.tv2 .hero-fatos .fato span { display: none; }
-html.tv2 .hero-fatos .fato b span { display: inline; }
+/* Modo TV do 2º turno: tudo numa tela só. Desenhado para 1920×1080 e ampliado/reduzido para caber em qualquer TV. */
+html.tv2 body { overflow: hidden; }
+html.tv2 .wrap { max-width: none; width: 1920px; height: 1080px; padding: 12px 22px; gap: 10px; margin: 0; grid-template-rows: auto minmax(0, 1fr); transform-origin: 0 0; }
 html.tv2 .top { gap: 8px; }
 html.tv2 h1 { font-size: 24px; }
-html.tv2 .hero-fatos .fato { padding: 6px 12px; }
-html.tv2 .mapa-area { min-height: 0; height: 100%; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+html.tv2 .t2 { min-height: 0; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hero mapa" "resumo mapa" "gov mapa"; }
+html.tv2 #t2-hero { grid-area: hero; padding: 16px 22px; gap: 12px; }
+html.tv2 #t2-resumo { grid-area: resumo; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+html.tv2 .mini-sub { display: none; }
+html.tv2 .mapa-area { grid-area: mapa; min-height: 0; height: 100%; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+html.tv2 .lado, html.tv2 #t2-estados, html.tv2 .t2 footer, html.tv2 .mapa-ctl, html.tv2 .hero-nota, html.tv2 .leg-nota, html.tv2 .dc-meta { display: none; }
 html.tv2 .mapa-card { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
 html.tv2 .mapa-box { min-height: 0; height: 100%; }
 html.tv2 #mapa { height: 100%; max-height: none; }
-html.tv2 .lado { position: static; height: 100%; overflow: hidden; }
-html.tv2 #t2-gov { padding: 10px 18px 0; }
-html.tv2 #t2-gov .card-head { display: none; }
-html.tv2 .gov-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); padding-bottom: 10px; gap: 8px; }
-html.tv2 .gcard { padding: 8px 10px; gap: 4px; font-size: 12px; }
-html.tv2 .gcard .lin2 { font-size: 12px; } html.tv2 .gcard .lin2 .pc { font-size: 15px; } html.tv2 .gcard .lin2 .vt { display: none; }
+html.tv2 #mapa text { font-size: 17px; }
+html.tv2 .dc-nome { font-size: 24px; }
+html.tv2 .dc-pct { font-size: 58px; margin-top: 2px; }
+html.tv2 .split:not(.fino) { height: 14px; }
+html.tv2 .hero-fatos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+html.tv2 .hero-fatos .fato { padding: 7px 12px; }
+html.tv2 .hero-fatos .fato b { font-size: 18px; }
+html.tv2 .hero-fatos .fato span { display: none; }
+html.tv2 .hero-fatos .fato small { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.tv2 .hero-fatos .fato b span { display: inline; font-size: inherit; }
+html.tv2 .hero-fatos .fato b { font-size: 17px; }
+html.tv2 .mini { padding: 8px 14px 10px; gap: 4px; }
+html.tv2 .mini-nums { font-size: 16px; }
+html.tv2 .mini-top { font-size: 10.5px; }
+html.tv2 #t2-gov { grid-area: gov; min-height: 0; overflow: hidden; padding: 12px 16px 0; }
+html.tv2 #t2-gov .card-head { margin-bottom: 6px; } html.tv2 #t2-gov .vagas { display: none; } html.tv2 #t2-gov h2 { font-size: 16px; }
+html.tv2 .gov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-bottom: 12px; }
+html.tv2 .gcard { padding: 10px 14px; gap: 5px; }
+html.tv2 .gcard-top b { font-size: 16px; }
+html.tv2 .gcard .lin2 { font-size: 14px; } html.tv2 .gcard .lin2 .pc { font-size: 18px; }
+html.tv2 .gcard .chip { padding: 2px 8px; font-size: 11px; }
+html.tv2 .turnos { box-shadow: none; }
+html.tv2 .turnos button { min-height: 30px; padding: 4px 12px; font-size: 13px; }
 .btn-tv2 { display: inline-flex; align-items: center; gap: 8px; }
 html.tv2 .btn-tv2 span { display: none; }
 @media (max-width: 760px) { .btn-tv2 { display: none; } }
@@ -782,7 +795,7 @@ html.tv2 .btn-tv2 span { display: none; }
   <div class="tvm-head">
     <div class="tvm-brand"><div class="eyebrow">Eleições 2026 · 1º turno · São Paulo</div><div class="tvm-title">Apuração ao vivo</div></div>
     <div class="tvm-meters" id="tvm-meters"></div>
-    <div class="tvm-clock"><div class="tvm-hora" id="tvm-hora">--:--</div><div class="tvm-stamp"><span class="dot" id="tvm-dot"></span><span id="tvm-stamp">Buscando dados do TSE…</span><button type="button" class="tvm-refresh" id="tvm-atualizar" title="Buscar agora (tecla R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg>Atualizar</button></div></div>
+    <div class="tvm-clock"><div class="tvm-hora" id="tvm-hora">--:--</div><div class="tvm-stamp"><span class="dot" id="tvm-dot"></span><span id="tvm-stamp">Buscando dados do TSE…</span><button type="button" class="tvm-refresh" id="tvm-t2" title="Mostrar o 2º turno na TV">2º turno</button><button type="button" class="tvm-refresh" id="tvm-atualizar" title="Buscar agora (tecla R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg>Atualizar</button></div></div>
   </div>
   <div class="tvm-bar">
     <div class="tvm-telas" id="tvm-telas"></div>
@@ -801,7 +814,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-06-1200';
+const VERSAO = '2026-10-06-1530';
 
 const CARGOS = {
   6: {
@@ -1716,12 +1729,13 @@ function entrarTV(comTelaCheia) {
   irTela(telaTV);
   atualizar();
 }
-function sairTV() {
+function sairTV(manterTela) {
   if (!modoTV) return;
   modoTV = false;
   clearInterval(timerTela);
   document.documentElement.classList.remove('tv', 'mexeu');
   document.documentElement.style.removeProperty('--tv-escala');
+  if (manterTela === true) { render(); return; }   // trocando para o modo TV do 2º turno: continua em tela cheia
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   try { wakeLock && wakeLock.release(); } catch (e) {}
   render();
@@ -2502,25 +2516,43 @@ function mostrarTurno(t) {
   if (t === '2') { render2(); if (!BR || !contador2) atualizar2(); else tick2(); }
   else { render(); atualizar(); }
 }
+function ajustarTV2() {
+  const w = document.querySelector('.wrap');
+  if (!modoTV2) { w.style.transform = ''; return; }
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  w.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+}
+addEventListener('resize', ajustarTV2);
 function entrarTV2(cheia) {
   modoTV2 = true;
   document.documentElement.classList.add('tv2');
+  ajustarTV2();
   if (cheia) telaCheia();
   pedirTelaLigada();
   voltarBrasil();
 }
-function sairTV2() {
+function sairTV2(manterTela) {
   if (!modoTV2) return;
   modoTV2 = false;
   document.documentElement.classList.remove('tv2');
+  ajustarTV2();
+  if (manterTela === true) return;
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   try { wakeLock && wakeLock.release(); } catch (e) {}
 }
 $('btn-tv2').addEventListener('click', () => (modoTV2 ? sairTV2() : entrarTV2(true)));
+// Troca de turno sem sair do modo TV (nem da tela cheia). A escolha vale para as próximas vezes que a TV abrir.
+function tvParaTurno(t) {
+  guardar('apuracao-tv-turno', t);
+  if (t === '2') { sairTV(true); mostrarTurno('2'); entrarTV2(false); }
+  else { sairTV2(true); mostrarTurno('1'); entrarTV(false); }
+}
+$('tvm-t2').addEventListener('click', () => tvParaTurno('2'));
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && modoTV2) sairTV2(); });
 document.querySelector('.turnos').addEventListener('click', (ev) => {
   const b = ev.target.closest('[data-turno]');
-  if (b && b.dataset.turno !== turno) mostrarTurno(b.dataset.turno);
+  if (!b || b.dataset.turno === turno) return;
+  if (modoTV2) tvParaTurno(b.dataset.turno); else mostrarTurno(b.dataset.turno);
 });
 $('t2').addEventListener('click', (ev) => {
   const mt = ev.target.closest('[data-mt]');
@@ -2567,13 +2599,15 @@ mostrarAvisosSituacao();
 // Abrir o link com #tv no fim já entra no modo TV (depois é só clicar em Tela cheia).
 // Depois de uma atualização automática, volta para o modo TV em que estava.
 const voltarTV = (() => { try { const v = sessionStorage.getItem('apuracao-voltar-tv'); sessionStorage.removeItem('apuracao-voltar-tv'); return v; } catch (e) { return null; } })();
-if ((location.hash.includes('tv') && !location.hash.includes('tv2')) || voltarTV) entrarTV(false);
+const tvNo1 = guardado('apuracao-tv-turno', '2') === '1';
+if (((location.hash.includes('tv') && !location.hash.includes('tv2')) || voltarTV) && tvNo1) entrarTV(false);
 // Se estava em tela cheia, o navegador só deixa voltar com um toque: qualquer tecla ou clique restaura.
 if (voltarTV === 'cheia') { const volta = () => { if (modoTV) telaCheia(); removeEventListener('keydown', volta); removeEventListener('pointerdown', volta); }; addEventListener('keydown', volta); addEventListener('pointerdown', volta); }
 // 2º turno: modo TV pelo endereço (#tv2) ou de volta depois de uma atualização automática.
 const voltarTV2 = (() => { try { const v = sessionStorage.getItem('apuracao-voltar-tv2'); sessionStorage.removeItem('apuracao-voltar-tv2'); return v; } catch (e) { return null; } })();
-mostrarTurno(modoTV ? '1' : (location.hash.includes('tv2') || voltarTV2 ? '2' : turno));
-if (!modoTV && (location.hash.includes('tv2') || voltarTV2)) {
+const querTV2 = !modoTV && (location.hash.includes('tv') || voltarTV || voltarTV2);
+mostrarTurno(modoTV ? '1' : (querTV2 ? '2' : turno));
+if (querTV2) {
   entrarTV2(false);
   const volta = () => { if (modoTV2) telaCheia(); removeEventListener('keydown', volta); removeEventListener('pointerdown', volta); };
   addEventListener('keydown', volta); addEventListener('pointerdown', volta);
