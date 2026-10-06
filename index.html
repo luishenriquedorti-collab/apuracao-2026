@@ -361,6 +361,10 @@ footer a { color: var(--accent-ink); }
 .el-check { display: inline-grid; place-items: center; width: 30px; height: 26px; border-radius: 999px; background: var(--good-bg); color: var(--good); }
 .el-check svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .el-vazio { padding: 14px 0 18px; color: var(--muted); font-size: 14px; }
+.el-sit { font-weight: 700; }
+.el-sit.good { color: var(--good); }
+.el-sit.warn { color: #8a5a00; }
+.el-mais { display: block; width: 100%; margin: 6px 0 14px; }
 .el-resumo { font-size: 14px; color: var(--ink-2); margin: 2px 0 8px; }
 .pt-blocos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 24px; padding-bottom: 12px; }
 .pt-bloco h3 { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 8px; }
@@ -703,7 +707,7 @@ html.tv2 .btn-tv2 span { display: none; }
       </button>
       <button class="tab" role="tab" id="tab-ele" data-aba="ele" aria-controls="painel-ele" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.3 1.7 2.9-.2.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.2L12 20.8l-2.3-1.7-2.9.2-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.2z"/><path d="m8.6 12.1 2.3 2.3 4.5-4.7"/></svg>
-        <span class="tab-text"><span class="tab-title">Eleitos em SP</span><span class="tab-sub">Deputados, Senado e Governo</span></span>
+        <span class="tab-text"><span class="tab-title">Eleitos em SP</span><span class="tab-sub">Todos os deputados, Senado e Governo</span></span>
       </button>
       <button class="tab" role="tab" id="tab-fav" data-aba="fav" aria-controls="painel-fav" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>
@@ -761,6 +765,7 @@ html.tv2 .btn-tv2 span { display: none; }
       </div>
       <div class="ele-filtros">
         <div class="field ele-busca"><label for="ele-q">Buscar</label><input id="ele-q" type="search" placeholder="Nome ou partido" autocomplete="off" enterkeyhint="search"></div>
+        <div class="field"><label for="ele-filtro">Mostrar</label><select id="ele-filtro"><option value="eleitos">Só eleitos</option><option value="todos">Todos os candidatos</option></select></div>
         <div class="field"><label for="ele-ordem">Ordem</label><select id="ele-ordem"><option value="uf">Mais votados em SP</option><option value="mu" id="ele-ordem-mu">Mais votados na cidade</option></select></div>
       </div>
       <div class="grid">
@@ -814,7 +819,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-06-1530';
+const VERSAO = '2026-10-06-1700';
 
 const CARGOS = {
   6: {
@@ -1484,6 +1489,7 @@ function renderFavoritos() {
 // ===== Aba Eleitos em SP =====
 // Eleito = situação oficial do TSE ou, até ela sair, a dedução da página (deputados com 99% das urnas,
 // Senador com 100%, Governador pelo "matematicamente definido").
+const limiteEle = { 6: 100, 7: 100 };   // quantos aparecem de cada lista (botão "Mostrar mais" aumenta)
 const eleitosDe = (res) => res ? res.todos.filter(c => situacao(c, res.temVotos)[1] === 'good') : [];
 const semAcento = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const CHECK = '<span class="el-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
@@ -1526,9 +1532,10 @@ function renderEleitos() {
   }).join('');
   $('ele-cadeiras').innerHTML = `<div class="card-head"><div><h2>Cadeiras por partido</h2><div class="vagas">Quantos eleitos cada partido fez em SP</div></div></div><div class="pt-blocos">${blocos || '<div class="el-vazio">Carregando…</div>'}</div>`;
 
-  // Deputados eleitos
+  // Deputados: só os eleitos ou todos os candidatos (com os votos em SP e na cidade escolhida)
   const q = semAcento($('ele-q').value.trim());
   const porCidade = $('ele-ordem').value === 'mu';
+  const todosCand = $('ele-filtro').value === 'todos';
   for (const cd of [6, 7]) {
     const res = pega('uf-' + cd), mu = pega('mu-' + cd), cfg = CARGOS[cd];
     const box = $('ele-' + cd);
@@ -1536,15 +1543,22 @@ function renderEleitos() {
     if (!res) { box.innerHTML = head('Carregando…'); continue; }
     const nossos = new Set([...cfg.principais, ...cfg.conhecimento].map(([, n]) => n));
     const vm = (c) => (mu && mu.mapa[c.n] ? mu.mapa[c.n].vap : 0);
-    const el = eleitosDe(res).slice().sort((a, b) => porCidade ? vm(b) - vm(a) || b.vap - a.vap : b.vap - a.vap);
-    if (!el.length) { box.innerHTML = head(`${res.vagas} vagas · apurado ${res.pst}%`) + '<div class="el-vazio">O resultado ainda não está definido. Os eleitos aparecem aqui a partir de 99% das urnas apuradas no estado.</div>'; continue; }
-    const linhas = el.map((c, i) => [i + 1, c]).filter(([, c]) => !q || semAcento(c.nmu + ' ' + c.partido + ' ' + c.n).includes(q)).map(([pos, c]) => {
-      const st = c.st && c.st !== 'Eleito' ? ' · ' + c.st : '';
+    const base = todosCand ? res.todos : eleitosDe(res);
+    const el = base.slice().sort((a, b) => porCidade ? vm(b) - vm(a) || b.vap - a.vap : b.vap - a.vap);
+    if (!el.length) { box.innerHTML = head(`${res.vagas} vagas · apurado ${res.pst}%`) + '<div class="el-vazio">O resultado ainda não está definido. Os eleitos aparecem aqui a partir de 99% das urnas apuradas no estado. Para ver todos os candidatos, escolha "Todos os candidatos".</div>'; continue; }
+    const achados = el.map((c, i) => [i + 1, c]).filter(([, c]) => !q || semAcento(c.nmu + ' ' + c.partido + ' ' + c.n).includes(q));
+    const limite = limiteEle[cd];
+    const linhas = achados.slice(0, limite).map(([pos, c]) => {
+      const [txt, cls] = situacao(c, res.temVotos);
+      const st = todosCand ? ` · <span class="el-sit ${cls}">${txt}</span>` : (c.st && c.st !== 'Eleito' ? ' · ' + c.st : '');
       return `<li class="el-row${nossos.has(c.n) ? ' nosso' : ''}"><span class="rank">${pos}º</span><div><div class="el-nome">${titulo(c.nmu)}${nossos.has(c.n) ? '<span class="el-tag">nosso</span>' : ''}</div><div class="c-meta">nº ${c.n} · ${c.partido}${st}</div></div>${numEleito(c, mu, onde)}</li>`;
     });
-    box.innerHTML = head(`${el.length} eleitos de ${res.vagas} vagas · ${porCidade ? 'mais votados em ' + onde : 'mais votados em SP'}`)
-      + `<ul class="list"><li class="el-row el-cab" aria-hidden="true"><span></span><span>Eleito</span><div class="el-nums"><span>São Paulo</span><span>${onde}</span></div></li>`
-      + (linhas.length ? linhas.join('') : '<li class="el-vazio">Nenhum eleito com esse nome ou partido.</li>') + '</ul>';
+    const resto = achados.length - linhas.length;
+    const titulo2 = todosCand ? `${fmt(el.length)} candidatos · ${eleitosDe(res).length} eleitos de ${res.vagas} vagas` : `${el.length} eleitos de ${res.vagas} vagas`;
+    box.innerHTML = head(`${titulo2} · ${porCidade ? 'mais votados em ' + onde : 'mais votados em SP'}${q ? ` · ${fmt(achados.length)} encontrados` : ''}`)
+      + `<ul class="list"><li class="el-row el-cab" aria-hidden="true"><span></span><span>${todosCand ? 'Candidato' : 'Eleito'}</span><div class="el-nums"><span>São Paulo</span><span>${onde}</span></div></li>`
+      + (linhas.length ? linhas.join('') : `<li class="el-vazio">Nenhum ${todosCand ? 'candidato' : 'eleito'} com esse nome, número ou partido.</li>`) + '</ul>'
+      + (resto > 0 ? `<button type="button" class="btn-ghost el-mais" data-mais="${cd}">Mostrar mais ${fmt(Math.min(resto, 100))} (faltam ${fmt(resto)})</button>` : '');
   }
 }
 function contarFavoritos() {
@@ -2006,8 +2020,17 @@ document.querySelector('.tabs').addEventListener('keydown', (ev) => {
   document.querySelector(`.tab[data-aba="${aba}"]`).focus();
 });
 $('refresh').addEventListener('click', () => (turno === '2' && !modoTV ? atualizar2() : atualizar()));
-$('ele-q').addEventListener('input', renderEleitos);
-$('ele-ordem').addEventListener('change', renderEleitos);
+const reiniciarEle = () => { limiteEle[6] = limiteEle[7] = 100; renderEleitos(); };
+$('ele-q').addEventListener('input', reiniciarEle);
+$('ele-ordem').addEventListener('change', reiniciarEle);
+$('ele-filtro').addEventListener('change', () => { guardar('apuracao-ele-filtro', $('ele-filtro').value); reiniciarEle(); });
+try { if (guardado('apuracao-ele-filtro', '') === 'todos') $('ele-filtro').value = 'todos'; } catch (e) {}
+$('painel-ele').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-mais]');
+  if (!b) return;
+  limiteEle[b.dataset.mais] += 100;
+  renderEleitos();
+});
 $('btn-tv').addEventListener('click', () => entrarTV(true));
 $('tvm-full').addEventListener('click', telaCheia);
 $('tvm-sair').addEventListener('click', sairTV);
