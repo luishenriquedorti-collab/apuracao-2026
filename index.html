@@ -64,7 +64,7 @@ h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -.02em
   margin-inline: -16px; padding: 10px 16px;
   background: var(--bg-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
-.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
+.tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px; box-shadow: var(--shadow); }
 .tab {
   display: flex; align-items: center; gap: 12px; text-align: left;
   font: inherit; color: var(--ink-2); background: transparent; border: 0; border-radius: 13px;
@@ -365,6 +365,36 @@ footer a { color: var(--accent-ink); }
 .el-sit.good { color: var(--good); }
 .el-sit.warn { color: #8a5a00; }
 .el-mais { display: block; width: 100%; margin: 6px 0 14px; }
+/* Votos por escola e seção */
+.sec { display: grid; gap: 12px; padding-bottom: 14px; }
+.sec-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sec-ctl select { max-width: 340px; }
+.sec-cand { flex: 1 1 280px; max-width: 520px; }
+.sec-cand select { max-width: none; flex: 1; }
+.sec-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); background: var(--tile); border-radius: 12px; padding: 10px 14px; }
+.sec-status .dot { background: var(--accent); animation: pulse 2s infinite; }
+.sec-resumo { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--ink-2); }
+.sec-resumo span { display: block; }
+.sec-resumo .sw { display: inline-block; margin-right: 6px; vertical-align: 0; }
+.sec-resumo b { color: var(--ink); }
+.tab-est.sec-tab td { white-space: normal; }
+.tab-est.sec-tab td:not(:first-child) { white-space: nowrap; }
+.sec-tab td small { color: var(--muted); font-weight: 600; }
+.sec-sub { display: block; font-weight: 500; font-size: 12px; color: var(--muted); margin-left: 0 !important; }
+.sec-top { font-size: 13px; }
+.sec-nota { padding-top: 2px; }
+.sec .sm { display: none; }
+@media (max-width: 640px) {
+  .sec-tab { font-size: 13px; }
+  .sec-tab th, .sec-tab td { padding: 8px 5px; }
+  .sec-tab td:first-child { min-width: 128px; }
+  .sec-tab td small { display: block; }
+  .sec-tab td .marg { gap: 4px; }
+  .sec .lg { display: none; } .sec .sm { display: inline; }
+  .sec-tab .sec-sub { font-size: 11px; }
+  .sec-ctl .field { flex: 1 1 100%; max-width: none; }
+  .sec-ctl select { max-width: none; flex: 1; }
+}
 .el-resumo { font-size: 14px; color: var(--ink-2); margin: 2px 0 8px; }
 .pt-blocos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 24px; padding-bottom: 12px; }
 .pt-bloco h3 { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 8px; }
@@ -612,7 +642,7 @@ html.tv2 #t2-hero { grid-area: hero; padding: 16px 22px; gap: 12px; }
 html.tv2 #t2-resumo { grid-area: resumo; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 html.tv2 .mini-sub { display: none; }
 html.tv2 .mapa-area { grid-area: mapa; min-height: 0; height: 100%; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
-html.tv2 .lado, html.tv2 #t2-estados, html.tv2 .t2 footer, html.tv2 .mapa-ctl, html.tv2 .hero-nota, html.tv2 .leg-nota, html.tv2 .dc-meta { display: none; }
+html.tv2 .lado, html.tv2 #t2-sec, html.tv2 #t2-estados, html.tv2 .t2 footer, html.tv2 .mapa-ctl, html.tv2 .hero-nota, html.tv2 .leg-nota, html.tv2 .dc-meta { display: none; }
 html.tv2 .mapa-card { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
 html.tv2 .mapa-box { min-height: 0; height: 100%; }
 html.tv2 #mapa { height: 100%; max-height: none; }
@@ -685,6 +715,7 @@ html.tv2 .btn-tv2 span { display: none; }
       </section>
       <aside class="card lado" id="t2-lado" aria-live="polite"></aside>
     </div>
+    <section class="card sec" id="t2-sec"></section>
     <section class="card" id="t2-gov"></section>
     <section class="card" id="t2-estados"></section>
     <footer>
@@ -708,6 +739,10 @@ html.tv2 .btn-tv2 span { display: none; }
       <button class="tab" role="tab" id="tab-ele" data-aba="ele" aria-controls="painel-ele" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.3 1.7 2.9-.2.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.2L12 20.8l-2.3-1.7-2.9.2-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.2z"/><path d="m8.6 12.1 2.3 2.3 4.5-4.7"/></svg>
         <span class="tab-text"><span class="tab-title">Eleitos em SP</span><span class="tab-sub">Todos os deputados, Senado e Governo</span></span>
+      </button>
+      <button class="tab" role="tab" id="tab-sec" data-aba="sec" aria-controls="painel-sec" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/><path d="M3 20h18"/></svg>
+        <span class="tab-text"><span class="tab-title">Por escola</span><span class="tab-sub">Seções, escolas e bairros</span></span>
       </button>
       <button class="tab" role="tab" id="tab-fav" data-aba="fav" aria-controls="painel-fav" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>
@@ -773,6 +808,7 @@ html.tv2 .btn-tv2 span { display: none; }
         <section class="card" id="ele-7"></section>
       </div>
     </div>
+    <section class="card sec" id="painel-sec" role="tabpanel" aria-labelledby="tab-sec" hidden></section>
     <div class="grid" id="painel-fav" role="tabpanel" aria-labelledby="tab-fav" hidden></div>
   </main>
 
@@ -819,7 +855,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-06-1700';
+const VERSAO = '2026-10-06-2030';
 
 const CARGOS = {
   6: {
@@ -888,6 +924,7 @@ ARQUIVOS.dep.push({ chave: 'mu-1', ele: ELE_FED, cargo: 1, nivel: 'mu' }, { chav
 ARQUIVOS.fav = ARQUIVOS.dep.concat(ARQUIVOS.maj);
 // Eleitos em SP: deputados, Governador e Senado no estado e na cidade escolhida (+ Brasil, por causa da festa).
 ARQUIVOS.ele = ['uf-3', 'uf-5', 'uf-6', 'uf-7', 'mu-3', 'mu-5', 'mu-6', 'mu-7', 'br-1'].map(k => ARQUIVOS.fav.find(a => a.chave === k));
+ARQUIVOS.sec = ARQUIVOS.ele.concat(ARQUIVOS.fav.filter(a => a.chave === 'mu-1'));   // nomes dos candidatos (estado) e totais da cidade
 
 // ===== Estado =====
 const DEMO = location.hash.includes('demo');
@@ -915,7 +952,7 @@ function botaoFav(cargo, numero, nome) {
   return `<button type="button" class="star" data-fav="${cargo}-${numero}" aria-pressed="${on}" aria-label="${on ? 'Tirar' : 'Marcar'} ${nome} como favorito" title="${on ? 'Tirar dos favoritos' : 'Marcar como favorito'}">${CORACAO}</button>`;
 }
 let aba = guardado('apuracao-aba', 'dep');
-if (!['dep', 'maj', 'ele', 'fav'].includes(aba)) aba = 'dep';
+if (!['dep', 'maj', 'ele', 'sec', 'fav'].includes(aba)) aba = 'dep';
 let municipios = [];
 const dados = {};            // chave -> { res, cidade, em }
 let ciclo = 0;               // conta as atualizações (para buscar deputados de vez em quando na outra aba)
@@ -1762,11 +1799,12 @@ function render() {
   $('painel-maj').hidden = aba !== 'maj';
   $('painel-fav').hidden = aba !== 'fav';
   $('painel-ele').hidden = aba !== 'ele';
+  $('painel-sec').hidden = aba !== 'sec';
   $('tab-maj-sub').textContent = 'votos em ' + nomeCidade();
   contarFavoritos();
-  if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else if (aba === 'ele') renderEleitos(); else renderFavoritos();
+  if (aba === 'dep') renderDeputados(); else if (aba === 'maj') renderMajoritarios(); else if (aba === 'ele') renderEleitos(); else if (aba === 'sec') renderSec1(); else renderFavoritos();
 
-  const soSP = aba === 'dep' || aba === 'ele';   // abas sem Brasil/Exterior
+  const soSP = aba === 'dep' || aba === 'ele' || aba === 'sec';   // abas sem Brasil/Exterior
   const br = !soSP ? pega('br-1') : null;
   // Cada cargo é totalizado no seu ritmo: o quadro mostra o mais adiantado entre os cargos da aba.
   const uf = maisAvancado(soSP ? ['uf-6', 'uf-7'] : ['uf-3', 'uf-5', 'uf-6', 'uf-7']);
@@ -2015,7 +2053,7 @@ document.addEventListener('click', (ev) => {
 });
 document.querySelector('.tabs').addEventListener('keydown', (ev) => {
   if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
-  const ordem = ['dep', 'maj', 'ele', 'fav'];
+  const ordem = ['dep', 'maj', 'ele', 'sec', 'fav'];
   trocarAba(ordem[(ordem.indexOf(aba) + (ev.key === 'ArrowRight' ? 1 : ordem.length - 1)) % ordem.length]);
   document.querySelector(`.tab[data-aba="${aba}"]`).focus();
 });
@@ -2415,6 +2453,7 @@ function renderLado() {
     h += `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn-ghost btn-lado" data-voltar-uf>← ${nomeUF(uf)}</button><button type="button" class="btn-ghost btn-lado" data-voltar-br>Brasil</button></div>`;
   }
   $('t2-lado').innerHTML = h;
+  renderSec2();
 }
 
 // ---------- Governadores ----------
@@ -2596,6 +2635,306 @@ $('t2').addEventListener('click', (ev) => {
   }
   if (cid && sel.uf) { sel.mu = cid.dataset.cid; pintarMapa(); renderLado(); }
 });
+
+// ===================== Votos por escola, bairro e seção (boletins de urna) =====================
+// Cada urna publica no TSE o seu Boletim de Urna (arquivo .bu, formato ASN.1 DER). A página baixa os boletins
+// da cidade escolhida, lê os votos de cada cargo e soma por escola (local de votação), por bairro e por seção.
+// Nomes das escolas, endereços e bairros: cadastro do TSE (mapas/locais/<uf>/<cidade>.json).
+const URNA = 'https://resultados.tse.jus.br/oficial/ele2026/arquivo-urna';
+const URNAS_AUTO = 300;      // até isso, carrega sozinho ao abrir
+const URNAS_LIMITE = 1500;   // acima disso, escolhe uma zona eleitoral por vez
+let pleitos = null;          // código da eleição -> código do pleito (a pasta dos boletins)
+const locaisCache = {};
+const urnasCache = {};
+const secEstado = {};
+// Nome de escola: deixa as siglas (EE., EMEF, EMEI, ETEC…) em maiúsculas e o resto em formato de título.
+const SIGLAS = new Set(['EE', 'EMEI', 'EMEF', 'EMEB', 'EMEIEF', 'EMEFEI', 'EEI', 'EEPG', 'EEPSG', 'ETEC', 'FATEC', 'SENAI', 'SESI', 'SESC', 'SENAC', 'CEU', 'CEI', 'CIEP', 'CEMEI', 'CMEI', 'CEEJA', 'APAE', 'UNESP', 'USP', 'II', 'III', 'IV', 'VI', 'XV', 'XX']);
+const nomeLocal = (s) => String(s || '').split(' ').map(w => { const l = w.replace(/[.,]/g, ''); return SIGLAS.has(l) || (/\./.test(w) && /^[A-Z.]{2,8}$/.test(w)) ? w : titulo(w); }).join(' ');
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+
+function derLer(b, ini, fim) {
+  const out = [];
+  let i = ini;
+  while (i < fim) {
+    const t = b[i++];
+    const cls = t >> 6, cons = (t >> 5) & 1;
+    let num = t & 31;
+    if (num === 31) { num = 0; let x; do { x = b[i++]; num = num * 128 + (x & 127); } while (x & 128); }
+    let len = b[i++];
+    if (len & 128) { const n = len & 127; len = 0; for (let k = 0; k < n; k++) len = len * 256 + b[i++]; }
+    const no = { cls, cons, num, ini: i, fim: i + len };
+    if (cons) no.f = derLer(b, i, i + len);
+    out.push(no);
+    i += len;
+  }
+  return out;
+}
+const derInt = (b, no) => { let v = 0; for (let k = no.ini; k < no.fim; k++) v = v * 256 + b[k]; return v; };
+// Devolve { comp: comparecimento, c: { cargo: { v: {número: votos}, leg: {partido: votos}, b: brancos, n: nulos } } }
+function lerBU(b) {
+  const env = derLer(b, 0, b.length)[0];
+  const cont = env.f.find(x => x.cls === 0 && x.num === 4 && !x.cons);
+  const raiz = derLer(b, cont.ini, cont.fim)[0].f;
+  const porEleicao = raiz.find(x => x.cons && x.f.length && x.f.every(y => y.cons && y.f.length && y.f[0].cls === 0 && y.f[0].num === 2 && derInt(b, y.f[0]) > 1000)).f;
+  const out = { comp: 0, c: {} };
+  for (const e of porEleicao) {
+    for (const rv of e.f.find(x => x.cons).f) {
+      const comp = rv.f.find(x => x.cls === 0 && x.num === 2);
+      if (comp) out.comp = Math.max(out.comp, derInt(b, comp));
+      for (const tc of rv.f.find(x => x.cons).f) {
+        const cg = derInt(b, tc.f.find(x => x.cls === 2 && x.num === 1));
+        const c = out.c[cg] = { v: {}, leg: {}, b: 0, n: 0 };
+        for (const vv of tc.f.find(x => x.cons).f) {
+          const tipo = derInt(b, vv.f.find(x => x.cls === 2 && x.num === 1));
+          const q = derInt(b, vv.f.find(x => x.cls === 2 && x.num === 2));
+          const id = vv.f.find(x => x.cls === 2 && x.num === 3 && x.cons);
+          if (tipo === 1 && id) { const n = derInt(b, id.f[1]); c.v[n] = (c.v[n] || 0) + q; }
+          else if (tipo === 4 && id) { const p = derInt(b, id.f[0]); c.leg[p] = (c.leg[p] || 0) + q; }
+          else if (tipo === 2) c.b += q;
+          else if (tipo === 3) c.n += q;
+        }
+      }
+    }
+  }
+  return out;
+}
+async function pleitoDe(ele) {
+  if (!pleitos) {
+    try {
+      const j = await (await fetch('https://resultados.tse.jus.br/oficial/comum/config/ele-c.json', { cache: 'no-cache' })).json();
+      pleitos = {};
+      for (const pl of j.pl) for (const e of pl.e) pleitos[e.cd] = pl.cd;
+    } catch (e) { /* tenta de novo na próxima */ }
+  }
+  return (pleitos && pleitos[ele]) || (ele === '6257' || ele === '6259' ? '3220' : null);
+}
+async function locaisDe(uf, cd) {
+  const k = uf + '-' + cd;
+  if (!locaisCache[k]) {
+    const r = await fetch(`mapas/locais/${uf}/${cd}.json`);
+    if (!r.ok) throw new Error('sem cadastro de locais');
+    locaisCache[k] = await r.json();
+  }
+  return locaisCache[k];
+}
+// Baixa os boletins que faltam (8 por vez). Seção sem boletim publicado fica como 'falta' e é tentada de novo depois.
+async function carregarUrnas(uf, cd, pleito, secoes, avisar) {
+  const k = `${pleito}-${uf}-${cd}`;
+  const c = urnasCache[k] || (urnasCache[k] = { sec: {}, carregando: false });
+  if (c.carregando) return c;
+  c.carregando = true;
+  const fila = secoes.filter(([z, s]) => { const v = c.sec[z + '-' + s]; return !v || v === 'falta'; });
+  const p6 = String(pleito).padStart(6, '0');
+  let feitas = 0;
+  const total = fila.length;
+  const trabalhar = async () => {
+    while (fila.length) {
+      const [z, s] = fila.shift();
+      const z4 = String(z).padStart(4, '0'), s4 = String(s).padStart(4, '0');
+      const dir = `${URNA}/${pleito}/dados/${uf}/${cd}/${z4}/${s4}`;
+      try {
+        const ra = await fetch(`${dir}/p${p6}-${uf}-m${cd}-z${z4}-s${s4}-aux.json`, { cache: 'no-cache' });
+        if (!ra.ok) throw new Error();
+        const hs = (await ra.json()).hashes || [];
+        const h = hs.filter(x => /totalizad/i.test(x.st || '')).pop() || hs[hs.length - 1];
+        const arq = h && (h.arq || []).find(a => a.tp === 'bu');
+        if (!arq) throw new Error();
+        const rb = await fetch(`${dir}/${h.hash}/${arq.nm}`);
+        if (!rb.ok) throw new Error();
+        c.sec[z + '-' + s] = lerBU(new Uint8Array(await rb.arrayBuffer()));
+      } catch (e) { c.sec[z + '-' + s] = 'falta'; }
+      feitas += 1;
+      if (avisar && feitas % 10 === 0) avisar(feitas, total);
+    }
+  };
+  if (avisar) avisar(0, total);
+  await Promise.all(Array.from({ length: 8 }, trabalhar));
+  c.carregando = false;
+  return c;
+}
+
+// ---------- tela (usada no 1º turno, aba "Por escola", e no 2º turno, abaixo do mapa) ----------
+// ctx: { id, uf, cd, cidade (nome), turno, cargos: [[código, título]], duelo(cg) -> [nºA, nºB] | null,
+//        nome(cg, nº) -> [nome, partido], lista(cg) -> [[nº, nome, partido]], padrao(cg) -> nº }
+function grupoVotos(secs, cg) {
+  const t = { v: {}, leg: 0, b: 0, n: 0, comp: 0, urnas: 0 };
+  for (const s of secs) {
+    const c = s.c[cg];
+    if (!c) continue;
+    t.urnas += 1; t.comp += s.comp; t.b += c.b; t.n += c.n;
+    for (const [k, q] of Object.entries(c.v)) t.v[k] = (t.v[k] || 0) + q;
+    for (const q of Object.values(c.leg)) t.leg += q;
+  }
+  t.validos = Object.values(t.v).reduce((a, q) => a + q, 0) + t.leg;
+  return t;
+}
+async function renderSec(box, ctx) {
+  const st = secEstado[ctx.id] || (secEstado[ctx.id] = { cargo: ctx.cargoPadrao || ctx.cargos[0][0], cand: null, visao: 'escola', zona: '', ord: { col: 'v', dir: -1 }, chave: '' });
+  if (!ctx.cargos.some(([cg]) => cg === st.cargo)) st.cargo = ctx.cargos[0][0];
+  const chave = `${ctx.uf}-${ctx.cd}-${ctx.turno}`;
+  if (st.chave !== chave) { st.chave = chave; st.zona = ''; st.cand = null; }
+  let loc;
+  try { loc = await locaisDe(ctx.uf, ctx.cd); } catch (e) { box.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)}</div></div></div><div class="el-vazio">Não encontrei o cadastro de locais de votação desta cidade.</div>`; return; }
+  if (st.chave !== chave) return;
+  const ele = ctx.turno === '2' ? (st.cargo === 1 ? '6258' : '6260') : (st.cargo === 1 ? '6257' : '6259');
+  const pleito = await pleitoDe(ele);
+  const zonas = [...new Set(loc.s.map(s => s[0]))].sort((a, b) => a - b);
+  const grande = loc.s.length > URNAS_LIMITE;
+  if (grande && !st.zona) st.zona = String(zonas[0]);
+  const secoes = loc.s.filter(s => !grande || String(s[0]) === st.zona);
+  const cache = pleito && urnasCache[`${pleito}-${ctx.uf}-${ctx.cd}`];
+  const lidas = secoes.map(s => [s, cache && cache.sec[s[0] + '-' + s[1]]]);
+  const ok = lidas.filter(([, r]) => r && r !== 'falta');
+  const faltam = lidas.filter(([, r]) => r === 'falta').length;
+  const carregando = cache && cache.carregando;
+  const duelo = ctx.duelo(st.cargo);
+  if (!duelo && !st.cand) st.cand = ctx.padrao(st.cargo);
+
+  // controles
+  const cargoSel = `<div class="field"><label for="${ctx.id}-cargo">Cargo</label><select id="${ctx.id}-cargo" data-sec="cargo">${ctx.cargos.map(([cg, t]) => `<option value="${cg}"${cg === st.cargo ? ' selected' : ''}>${t}</option>`).join('')}</select></div>`;
+  let candSel = '';
+  if (!duelo) {
+    const tot = grupoVotos(ok.map(([, r]) => r), st.cargo);
+    const lista = ctx.lista(st.cargo).slice().sort((a, b) => (tot.v[b[0]] || 0) - (tot.v[a[0]] || 0));
+    const nossos = new Set(ctx.nossos ? ctx.nossos(st.cargo) : []);
+    const op = (x) => `<option value="${x[0]}"${String(x[0]) === String(st.cand) ? ' selected' : ''}>${esc(x[1])} (${x[0]} · ${esc(x[2])})${ok.length ? ' · ' + fmt(tot.v[x[0]] || 0) : ''}</option>`;
+    candSel = `<div class="field sec-cand"><label for="${ctx.id}-cand">Candidato</label><select id="${ctx.id}-cand" data-sec="cand">${nossos.size ? `<optgroup label="Nossos candidatos">${lista.filter(x => nossos.has(String(x[0]))).map(op).join('')}</optgroup><optgroup label="Todos (mais votados na cidade primeiro)">` : ''}${lista.map(op).join('')}${nossos.size ? '</optgroup>' : ''}</select></div>`;
+  }
+  const zonaSel = grande ? `<div class="field"><label for="${ctx.id}-zona">Zona</label><select id="${ctx.id}-zona" data-sec="zona">${zonas.map(z => `<option value="${z}"${String(z) === st.zona ? ' selected' : ''}>${z}ª zona · ${fmt(loc.s.filter(s => s[0] === z).length)} urnas</option>`).join('')}</select></div>` : '';
+  const visoes = [['escola', 'Escolas'], ['bairro', 'Bairros'], ['secao', 'Seções']];
+  const visaoSeg = `<div class="seg" role="group" aria-label="Agrupar por">${visoes.map(([k, t]) => `<button type="button" data-sec-visao="${k}" aria-pressed="${st.visao === k}">${t}</button>`).join('')}</div>`;
+  const turnoSeg = ctx.turnos ? `<div class="seg" role="group" aria-label="Turno">${['2', '1'].map(t => `<button type="button" data-sec-turno="${t}" aria-pressed="${ctx.turno === t}">${t}º turno</button>`).join('')}</div>` : '';
+
+  // situação da carga
+  let status = '';
+  if (!pleito) status = '<div class="sec-status">Os boletins de urna deste turno ainda não foram publicados pelo TSE. Eles aparecem aqui conforme as seções forem apuradas.</div>';
+  else if (carregando) status = `<div class="sec-status"><span class="dot"></span><span id="${ctx.id}-prog">Baixando os boletins das urnas…</span></div>`;
+  else if (!ok.length && !faltam) status = `<div class="sec-status">${fmt(secoes.length)} urnas${grande ? ` na ${st.zona}ª zona` : ''}. <button type="button" class="btn-ghost" data-sec-carregar>Carregar os votos das urnas</button>${secoes.length > URNAS_AUTO ? ' <span class="nota2">(pode levar um ou dois minutos)</span>' : ''}</div>`;
+  else if (faltam) status = `<div class="sec-status">${fmt(faltam)} ${faltam === 1 ? 'urna ainda sem boletim publicado' : 'urnas ainda sem boletim publicado'}. <button type="button" class="btn-ghost" data-sec-carregar>Buscar de novo</button></div>`;
+
+  // tabela
+  let tabela = '', resumo = '';
+  if (ok.length) {
+    const grupos = new Map();
+    for (const [s, r] of ok) {
+      const lk = s[0] + '-' + s[2], l = loc.l[lk] || ['Local ' + s[2], '', '', null, null];
+      const k = st.visao === 'escola' ? lk : st.visao === 'bairro' ? (l[1] || 'Sem bairro') : s[0] + '-' + s[1];
+      const g = grupos.get(k) || { nome: st.visao === 'escola' ? l[0] : st.visao === 'bairro' ? (l[1] || 'Sem bairro') : `${s[0]}ª zona · seção ${s[1]}`, sub: st.visao === 'escola' ? l[2] : st.visao === 'secao' ? l[0] : '', bairro: l[1], el: 0, secs: [], escolas: new Set() };
+      g.el += s[3]; g.secs.push(r); g.escolas.add(lk);
+      grupos.set(k, g);
+    }
+    const linhas = [...grupos.values()].map(g => {
+      const t = grupoVotos(g.secs, st.cargo);
+      const linha = { g, t, nome: g.nome, bairro: g.bairro, sec: g.secs.length, el: g.el, comp: t.comp };
+      if (duelo) {
+        const a = t.v[duelo[0]] || 0, b = t.v[duelo[1]] || 0;
+        Object.assign(linha, { a, b, pa: t.validos ? a / t.validos * 100 : 0, pb: t.validos ? b / t.validos * 100 : 0 });
+        linha.dif = linha.pa - linha.pb; linha.v = a + b;
+      } else {
+        const v = t.v[st.cand] || 0;
+        const [topN, topV] = Object.entries(t.v).sort((x, y) => y[1] - x[1])[0] || [];
+        Object.assign(linha, { v, p: t.validos ? v / t.validos * 100 : 0, top: topN, topV, pos: 1 + Object.values(t.v).filter(q => q > v).length });
+      }
+      return linha;
+    });
+    const { col, dir } = st.ord;
+    linhas.sort((x, y) => (col === 'nome' || col === 'bairro' ? String(x[col] || '').localeCompare(String(y[col] || '')) : (x[col] || 0) - (y[col] || 0)) * dir);
+    const th = (k, t, cls) => `<th scope="col" class="${cls || ''}" aria-sort="${col === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'}"><button type="button" data-sec-ord="${k}">${t}${col === k ? (dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
+    const nomeCol = st.visao === 'escola' ? 'Escola' : st.visao === 'bairro' ? 'Bairro' : 'Seção';
+    const tot = grupoVotos(ok.map(([, r]) => r), st.cargo);
+    if (duelo) {
+      const [na, nb] = [ctx.nome(st.cargo, duelo[0]), ctx.nome(st.cargo, duelo[1])];
+      const pal = st.cargo === 1 ? PAL.p : PAL.g;
+      const a = tot.v[duelo[0]] || 0, b = tot.v[duelo[1]] || 0;
+      const va = linhas.filter(l => l.a > l.b).length, vb = linhas.filter(l => l.b > l.a).length;
+      const nomeG = (n) => n + ' ' + (st.visao === 'escola' ? (n === 1 ? 'escola' : 'escolas') : st.visao === 'bairro' ? (n === 1 ? 'bairro' : 'bairros') : (n === 1 ? 'seção' : 'seções'));
+      resumo = `<div class="sec-resumo"><span><i class="sw ${pal.sa}"></i><b>${esc(na[0])}</b> ${pc(tot.validos ? a / tot.validos * 100 : 0)} · ${fmt(a)} votos · na frente em <b>${nomeG(va)}</b></span><span><i class="sw ${pal.sb}"></i><b>${esc(nb[0])}</b> ${pc(tot.validos ? b / tot.validos * 100 : 0)} · ${fmt(b)} votos · na frente em <b>${nomeG(vb)}</b></span></div>`;
+      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('a', esc(na[0].split(' ').pop()))}${th('b', esc(nb[0].split(' ').pop()))}${th('dif', '<span class="lg">Diferença</span><span class="sm">Dif.</span>')}</tr></thead><tbody>${linhas.map(l => `<tr><td class="uf-n">${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td><b>${fmt(l.a)}</b> <small>${pc(l.pa)}</small></td><td><b>${fmt(l.b)}</b> <small>${pc(l.pb)}</small></td><td><span class="marg"><i class="sw ${l.dif >= 0 ? pal.sa : pal.sb}"></i>${ppTxt(l.dif).replace(' p.p.', '<span class="lg"> p.p.</span>')}</span></td></tr>`).join('')}</tbody></table>`;
+    } else {
+      const [nc] = ctx.nome(st.cargo, st.cand);
+      const v = tot.v[st.cand] || 0;
+      const melhor = linhas.slice().sort((x, y) => y.v - x.v)[0];
+      resumo = `<div class="sec-resumo"><span><b>${esc(nc)}</b> teve <b>${fmt(v)}</b> votos em ${esc(ctx.cidade)}${grande ? ` (${st.zona}ª zona)` : ''} · ${pc(tot.validos ? v / tot.validos * 100 : 0)} dos válidos</span>${melhor && melhor.v ? `<span>Mais votos em: <b>${esc(nomeLocal(melhor.nome))}</b> (${fmt(melhor.v)} · ${pc(melhor.p)})</span>` : ''}</div>`;
+      tabela = `<table class="tab-est sec-tab"><thead><tr>${th('nome', nomeCol)}${st.visao === 'escola' ? th('bairro', 'Bairro', 'col-op') : ''}${th('sec', 'Urnas', 'col-op')}${th('comp', 'Votantes', 'col-op')}${th('v', 'Votos')}${th('p', '% válidos')}${th('pos', 'Posição', 'col-op')}<th scope="col" class="col-op">Mais votado aqui</th></tr></thead><tbody>${linhas.map(l => { const top = l.top ? ctx.nome(st.cargo, l.top) : ['—', '']; return `<tr><td class="uf-n">${esc(nomeLocal(l.nome))}${l.g.sub ? `<small class="sec-sub">${esc(nomeLocal(l.g.sub))}</small>` : ''}</td>${st.visao === 'escola' ? `<td class="col-op">${esc(titulo(l.bairro || ''))}</td>` : ''}<td class="col-op">${l.sec}</td><td class="col-op">${fmt(l.comp)}</td><td><b>${fmt(l.v)}</b></td><td>${pc(l.p)}</td><td class="col-op">${l.v ? l.pos + 'º' : '—'}</td><td class="col-op sec-top">${esc(top[0])} <small>${fmt(l.topV || 0)}</small></td></tr>`; }).join('')}</tbody></table>`;
+    }
+  }
+  const nLocais = new Set(secoes.map(s => s[0] + '-' + s[2])).size;
+  box.innerHTML = `<div class="card-head"><div><h2>Votos por escola e seção</h2><div class="vagas">${esc(ctx.cidade)} · ${fmt(nLocais)} locais de votação · ${fmt(secoes.length)} urnas${grande ? ` na ${st.zona}ª zona (a cidade tem ${fmt(loc.s.length)})` : ''} · ${ctx.turno}º turno${ctx.dica ? ' · ' + ctx.dica : ''}</div></div>${turnoSeg}</div>
+    <div class="sec-ctl">${cargoSel}${candSel}${zonaSel}${visaoSeg}</div>${status}${resumo}${tabela ? `<div class="tab-wrap">${tabela}</div>` : ''}
+    ${ok.length ? '<div class="nota2 sec-nota">Votos lidos dos boletins de urna publicados pelo TSE. "% válidos" = votos do candidato ÷ (votos nominais + de legenda) naquele lugar.</div>' : ''}`;
+  // carrega sozinho as cidades pequenas
+  const auto = `${chave}-${st.zona}-${pleito}`;
+  if (pleito && !carregando && !ok.length && !faltam && secoes.length <= URNAS_AUTO && st.tentou !== auto) { st.tentou = auto; secCarregar(box, ctx); }
+}
+async function secCarregar(box, ctx) {
+  const st = secEstado[ctx.id], loc = await locaisDe(ctx.uf, ctx.cd);
+  const ele = ctx.turno === '2' ? (st.cargo === 1 ? '6258' : '6260') : (st.cargo === 1 ? '6257' : '6259');
+  const pleito = await pleitoDe(ele);
+  if (!pleito) return;
+  const grande = loc.s.length > URNAS_LIMITE;
+  const secoes = loc.s.filter(s => !grande || String(s[0]) === st.zona);
+  const prom = carregarUrnas(ctx.uf, ctx.cd, pleito, secoes, (f, t) => { const el = document.getElementById(ctx.id + '-prog'); if (el) el.textContent = `Baixando os boletins das urnas… ${fmt(f)} de ${fmt(t)}`; });
+  renderSec(box, ctx);
+  await prom;
+  renderSec(box, ctx);
+}
+function ligarSec(box, ctxFn) {
+  box.addEventListener('change', (ev) => {
+    const st = secEstado[ctxFn().id], k = ev.target.dataset.sec;
+    if (!k) return;
+    if (k === 'cargo') { st.cargo = Number(ev.target.value); st.cand = null; }
+    if (k === 'cand') st.cand = ev.target.value;
+    if (k === 'zona') st.zona = ev.target.value;
+    renderSec(box, ctxFn());
+  });
+  box.addEventListener('click', (ev) => {
+    const ctx = ctxFn(), st = secEstado[ctx.id];
+    const v = ev.target.closest('[data-sec-visao]');
+    if (v) { st.visao = v.dataset.secVisao; renderSec(box, ctx); return; }
+    const o = ev.target.closest('[data-sec-ord]');
+    if (o) { const k = o.dataset.secOrd; st.ord = { col: k, dir: st.ord.col === k ? -st.ord.dir : (k === 'nome' || k === 'bairro' ? 1 : -1) }; renderSec(box, ctx); return; }
+    const t = ev.target.closest('[data-sec-turno]');
+    if (t) { secTurno2 = t.dataset.secTurno; renderSec(box, ctxFn()); return; }
+    if (ev.target.closest('[data-sec-carregar]')) secCarregar(box, ctx);
+  });
+}
+
+// 1º turno: aba "Por escola" (cidade do seletor de cidades de SP)
+const CARGOS_SEC = [[1, 'Presidente'], [3, 'Governador'], [5, 'Senador'], [6, 'Deputado Federal'], [7, 'Deputado Estadual']];
+const arqDeCargo = (cg) => (cg === 1 ? 'br-1' : 'uf-' + cg);
+function ctxSec1() {
+  return {
+    id: 'sec1', uf: 'sp', cd: cidade, cidade: nomeCidade(), turno: '1', cargos: CARGOS_SEC, cargoPadrao: 6,
+    duelo: () => null,
+    nome: (cg, n) => { const r = pega(arqDeCargo(cg)), c = r && r.mapa[n]; return c ? [nomeCand(c), c.partido] : ['nº ' + n, '']; },
+    lista: (cg) => { const r = pega(arqDeCargo(cg)); return r ? r.todos.map(c => [c.n, nomeCand(c), c.partido]) : []; },
+    nossos: (cg) => (CARGOS[cg] ? [...CARGOS[cg].principais, ...CARGOS[cg].conhecimento].map(([, n]) => String(n)) : []),
+    padrao: (cg) => {
+      if (CARGOS[cg]) { const mu = pega('mu-' + cg); const l = [...CARGOS[cg].principais].sort((a, b) => ((mu && mu.mapa[b[1]] || {}).vap || 0) - ((mu && mu.mapa[a[1]] || {}).vap || 0)); return l[0][1]; }
+      const r = pega(arqDeCargo(cg)); return r && r.todos[0] ? r.todos[0].n : '';
+    },
+  };
+}
+function renderSec1() { renderSec($('painel-sec'), ctxSec1()); }
+ligarSec($('painel-sec'), ctxSec1);
+
+// 2º turno: abaixo do mapa, para a cidade escolhida no mapa (ou a cidade padrão)
+let secTurno2 = null;
+function ctxSec2() {
+  const uf = sel.uf && sel.mu ? sel.uf : 'sp', cd = sel.uf && sel.mu ? sel.mu : cidade;
+  const nomeC = sel.uf && sel.mu && UFS[uf] ? titulo(UFS[uf].mu[cd].nm) + ' (' + uf.toUpperCase() + ')' : nomeCidade() + ' (SP)';
+  const g = govDe(uf);
+  return {
+    id: 'sec2', uf, cd, cidade: nomeC, turno: secTurno2 || (comecou2 ? '2' : '1'), turnos: true,
+    dica: sel.uf && sel.mu ? '' : 'toque numa cidade no mapa para trocar',
+    cargos: g ? [[1, 'Presidente'], [3, 'Governador']] : [[1, 'Presidente']],
+    duelo: (cg) => (cg === 3 && g ? [g.c[0].n, g.c[1].n] : [CAND.a, CAND.b]),
+    nome: (cg, n) => (cg === 3 && g ? nomesDe('g', uf)[g.c[0].n === String(n) ? 0 : 1] : nomesDe('p')[String(n) === CAND.a ? 0 : 1]),
+    lista: () => [], padrao: () => null,
+  };
+}
+function renderSec2() { if (!modoTV2) renderSec($('t2-sec'), ctxSec2()); }
+ligarSec($('t2-sec'), ctxSec2);
 
 // Página escondida (outra aba do navegador, celular bloqueado): não busca nada.
 // Ao voltar, atualiza na hora se os dados tiverem mais de 15 segundos.
