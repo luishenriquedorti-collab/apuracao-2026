@@ -685,29 +685,95 @@ html.tv2 .turnos button { min-height: 30px; padding: 4px 12px; font-size: 13px; 
 html.tv2 .btn-tv2 span { display: none; }
 @media (max-width: 760px) { .btn-tv2 { display: none; } }
 
+/* ===================== Interface enxuta: cabeçalho, navegação e quadros compactos ===================== */
+.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; }
+.marca { min-width: 0; }
+.top h1 { font-size: clamp(22px, 3.4vw, 30px); }
+.top .live { display: flex; width: fit-content; background: transparent; border: 0; padding: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.top-dir { flex-wrap: nowrap; gap: 8px; }
+.btn-tv2 { min-height: 40px; }
+/* Navegação: uma linha de botões, fixa no topo ao rolar (no celular, desliza para o lado) */
+.tabs-bar, .secnav-bar { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding: 8px 16px; background: var(--bg-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.tabs, .secnav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; background: transparent; border: 0; box-shadow: none; padding: 1px; border-radius: 0; }
+.tabs::-webkit-scrollbar, .secnav::-webkit-scrollbar { display: none; }
+.tab, .secnav a { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 7px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; box-shadow: none; }
+.tab:hover, .secnav a:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.tab .tab-text { display: inline-flex; align-items: center; gap: 6px; }
+.tab .tab-title { font-size: 14px; font-weight: 800; }
+.tab .tab-sub { display: none; }
+.tab .tab-sub.badge:not(:empty) { display: inline-block; font-size: 11px; font-weight: 800; line-height: 1; padding: 3px 6px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); opacity: 1; }
+.tab svg { display: block !important; width: 18px; height: 18px; }
+.tab[aria-selected="true"], .secnav a.ativo { background: var(--ink); border-color: var(--ink); color: var(--surface); box-shadow: none; }
+.tab[aria-selected="true"] .tab-sub.badge { background: rgba(255, 255, 255, .2); color: var(--surface); }
+#t2 > section, #t2 > .mapa-area, #t2 > .resumo2 { scroll-margin-top: 64px; }
+/* Urnas apuradas: compacto */
+.progress { gap: 10px; }
+.prog-tit { grid-column: 1 / -1; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: -4px; }
+.prog { padding: 10px 14px 12px; gap: 6px; border-radius: 14px; }
+.prog-label small { display: none; }
+.prog-label { font-size: 13.5px; }
+.prog-value { font-size: 22px; }
+.prog-value small { font-size: 12px; }
+.track { height: 6px; }
+/* "Por escola": não deixa a lista de candidatos alargar o quadro */
+.sec { grid-template-columns: minmax(0, 1fr); }
+.sec-ctl .field { min-width: 0; }
+.sec-ctl select { min-width: 0; }
+@media (max-width: 760px) { .btn-tv2 { display: none; } }
+@media (max-width: 560px) {
+  .wrap { gap: 12px; padding-block: 14px 40px; }
+  .top { grid-template-columns: minmax(0, 1fr) auto; }
+  .top .eyebrow { font-size: 10.5px; }
+  .top h1 { font-size: 21px; }
+  .turnos { padding: 3px; }
+  .turnos button { min-height: 34px; padding: 5px 11px; font-size: 13px; }
+  .tab, .secnav a { min-height: 38px; padding: 6px 12px; font-size: 13.5px; }
+  .tab .tab-title { font-size: 13.5px; }
+  .prog-foot { display: none; }
+  .prog { padding: 8px 12px 10px; gap: 4px; }
+  .prog-value { font-size: 18px; }
+  .progress.quatro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .btn-refresh { padding-inline: 12px; }
+  .btn-refresh span { display: none; }
+  .fato b { white-space: normal; overflow-wrap: anywhere; font-size: 17px; }
+  .hero-cargo { font-size: 11.5px; }
+}
+html.tv2 .secnav-bar { display: none; }
+.top .live #stamp { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.top .live { max-width: 100%; }
+.prog-head { flex-wrap: nowrap; align-items: baseline; }
+.prog-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; display: block; }
+.prog-value { flex: none; }
+@media (max-width: 560px) {
+  .eb-mais { display: none; }
+  .prog-value { font-size: 17px; }
+  .prog-label { font-size: 12.5px; }
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div>
+    <div class="marca">
       <div class="eyebrow" id="eyebrow">Eleições 2026 · 1º turno · São Paulo</div>
       <h1 id="titulo-pag">Apuração ao vivo</h1>
+      <div class="live" id="live"><span class="dot"></span><span id="stamp">Buscando dados do TSE…</span></div>
     </div>
     <div class="top-dir">
       <div class="turnos" role="tablist" aria-label="Escolha o turno">
         <button type="button" role="tab" id="turno-2" data-turno="2" aria-selected="false">2º turno</button>
         <button type="button" role="tab" id="turno-1" data-turno="1" aria-selected="false">1º turno</button>
       </div>
-      <div class="live" id="live"><span class="dot"></span><span id="stamp">Buscando dados do TSE…</span></div>
-      <button id="btn-tv2" class="btn-tv btn-tv2" type="button" title="Tela cheia para TV" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
+      <button id="btn-tv2" class="btn-tv btn-tv2" type="button" title="Tela cheia para TV (troca de turno sem sair)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
     </div>
   </div>
 
   <div class="t2" id="t2" hidden>
+    <nav class="secnav-bar" aria-label="Ir para"><div class="secnav" id="secnav"><a href="#t2-hero" data-alvo="t2-hero">Presidente</a><a href="#t2-mapa" data-alvo="t2-mapa">Mapa</a><a href="#t2-sec" data-alvo="t2-sec">Por escola</a><a href="#t2-gov" data-alvo="t2-gov">Governadores</a><a href="#t2-estados" data-alvo="t2-estados">Estados</a></div></nav>
     <section class="card hero" id="t2-hero" aria-live="polite"><div class="el-vazio">Carregando…</div></section>
     <div class="resumo2" id="t2-resumo"></div>
-    <div class="mapa-area">
+    <div class="mapa-area" id="t2-mapa">
       <section class="card mapa-card">
         <div class="mapa-head">
           <div><h2 id="mapa-titulo">Mapa do Brasil</h2><div class="vagas" id="mapa-sub">Toque em um estado para ver as cidades</div></div>
@@ -758,12 +824,13 @@ html.tv2 .btn-tv2 span { display: none; }
       </button>
       <button class="tab" role="tab" id="tab-fav" data-aba="fav" aria-controls="painel-fav" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.4-4.5-9.1-9C1.7 8.1 3.8 4.6 7.3 4.6c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.6 3.5 4.4 6.7-1.7 4.5-9.1 9-9.1 9z"/></svg>
-        <span class="tab-text"><span class="tab-title">Favoritos</span><span class="tab-sub" id="tab-fav-sub">nenhum ainda</span></span>
+        <span class="tab-text"><span class="tab-title">Favoritos</span><span class="tab-sub badge" id="tab-fav-sub"></span></span>
       </button>
     </div>
   </nav>
 
   <div class="progress" id="progress">
+    <div class="prog-tit">Urnas apuradas</div>
     <div class="prog" id="prog-br" hidden>
       <div class="prog-head"><span class="prog-label"><small>Urnas apuradas</small>Brasil</span><span class="prog-value" id="pst-br">—</span></div>
       <div class="track"><div class="fill" id="bar-br"></div></div>
@@ -789,7 +856,7 @@ html.tv2 .btn-tv2 span { display: none; }
   <div class="controls">
     <div class="field"><label for="city">Cidade</label><select id="city"><option>Carregando…</option></select></div>
     <button id="refresh" class="btn-refresh" type="button" title="Buscar agora (a página também atualiza sozinha a cada 60 segundos)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg><span>Atualizar</span></button>
-    <button id="btn-tv" class="btn-tv" type="button" title="Tela cheia para TV: alterna sozinha entre deputados e Presidente/Governo/Senado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
+    <button id="btn-tv" class="btn-tv" hidden type="button" title="Tela cheia para TV: alterna sozinha entre deputados e Presidente/Governo/Senado"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
   </div>
   <div id="banner" class="banner" hidden></div>
   <div id="avisos" class="avisos" aria-live="polite" hidden></div>
@@ -867,7 +934,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-06-2130';
+const VERSAO = '2026-10-07-1200';
 
 const CARGOS = {
   6: {
@@ -1612,7 +1679,7 @@ function renderEleitos() {
 }
 function contarFavoritos() {
   const n = favoritos.size;
-  $('tab-fav-sub').textContent = n === 0 ? 'nenhum ainda' : n === 1 ? '1 candidato' : n + ' candidatos';
+  $('tab-fav-sub').textContent = n ? String(n) : '';
 }
 
 // ===== Tela =====
@@ -2245,7 +2312,7 @@ function renderHero() {
     nota = comecou2 ? 'O TSE já abriu o 2º turno e os primeiros votos aparecem em instantes. Enquanto isso, os números abaixo são do <b>1º turno</b>.'
       : 'A apuração do 2º turno ainda não começou. Os números abaixo são do <b>1º turno</b>, para comparação. A página troca sozinha para o 2º turno quando o TSE começar a divulgar.';
   }
-  $('t2-hero').innerHTML = `<div class="hero-top"><span class="hero-cargo">Presidente da República · ${ao ? '2º turno' : '1º turno (referência)'} · Brasil</span>${chip}</div>
+  $('t2-hero').innerHTML = `<div class="hero-top"><span class="hero-cargo">Presidente · ${ao ? '2º turno' : '1º turno (referência)'}</span>${chip}</div>
     <div class="duelo-cands">${cand(0, pa, par.a)}${cand(1, pb, par.b, true)}</div>
     ${barra(par)}
     <div class="hero-fatos">${fatos.map(([k, v, s]) => `<div class="fato"><small>${k}</small><b>${v}</b><span>${s}</span></div>`).join('')}</div>
@@ -2584,9 +2651,8 @@ function mostrarTurno(t) {
   for (const b of document.querySelectorAll('[data-turno]')) b.setAttribute('aria-selected', String(b.dataset.turno === t));
   $('t2').hidden = t !== '2';
   $('t1').hidden = t !== '1';
-  $('btn-tv2').hidden = t !== '2';
   document.querySelector('.wrap').classList.toggle('largo', t === '2');
-  $('eyebrow').textContent = t === '2' ? 'Eleições 2026 · 2º turno · Brasil' : 'Eleições 2026 · 1º turno · São Paulo';
+  $('eyebrow').innerHTML = t === '2' ? 'Eleições 2026 · 2º turno<span class="eb-mais"> · Brasil</span>' : 'Eleições 2026 · 1º turno<span class="eb-mais"> · São Paulo</span>';
   if (t === '2') { render2(); if (!BR || !contador2) atualizar2(); else tick2(); }
   else { render(); atualizar(); }
 }
@@ -2614,7 +2680,27 @@ function sairTV2(manterTela) {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   try { wakeLock && wakeLock.release(); } catch (e) {}
 }
-$('btn-tv2').addEventListener('click', () => (modoTV2 ? sairTV2() : entrarTV2(true)));
+// Um botão de Modo TV só: abre o modo TV do turno que está na tela.
+$('btn-tv2').addEventListener('click', () => { if (turno === '2') { if (modoTV2) sairTV2(); else entrarTV2(true); } else entrarTV(true); });
+// Atalhos do 2º turno: rola até a seção e marca onde a pessoa está.
+$('secnav').addEventListener('click', (ev) => {
+  const a = ev.target.closest('[data-alvo]');
+  if (!a) return;
+  ev.preventDefault();
+  $(a.dataset.alvo).scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+if ('IntersectionObserver' in window) {
+  const vistos = new Map();
+  const obs = new IntersectionObserver((itens) => {
+    for (const it of itens) vistos.set(it.target.id, it.isIntersecting ? it.boundingClientRect.top : null);
+    const ativo = [...vistos.entries()].filter(([, t]) => t != null).sort((x, y) => Math.abs(x[1]) - Math.abs(y[1]))[0];
+    if (!ativo) return;
+    for (const a of document.querySelectorAll('#secnav a')) a.classList.toggle('ativo', a.dataset.alvo === ativo[0]);
+    const atual = document.querySelector('#secnav a.ativo');
+    if (atual) atual.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, { rootMargin: '-80px 0px -55% 0px' });
+  for (const id of ['t2-hero', 't2-mapa', 't2-sec', 't2-gov', 't2-estados']) obs.observe($(id));
+}
 // Troca de turno sem sair do modo TV (nem da tela cheia). A escolha vale para as próximas vezes que a TV abrir.
 function tvParaTurno(t) {
   guardar('apuracao-tv-turno', t);
