@@ -739,6 +739,11 @@ html.tv2 .btn-tv2 span { display: none; }
   .hero-cargo { font-size: 11.5px; }
 }
 html.tv2 .secnav-bar { display: none; }
+.mun-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-radius: 14px; background: var(--accent-soft); color: var(--accent-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+.mun-link b { font-weight: 800; }
+.mun-link:hover { background: #dceafc; }
+.mun-link > span:last-child { font-size: 18px; font-weight: 800; flex: none; }
+html.tv2 .mun-link { display: none; }
 .top .live #stamp { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .top .live { max-width: 100%; }
 .prog-head { flex-wrap: nowrap; align-items: baseline; }
@@ -768,6 +773,8 @@ html.tv2 .secnav-bar { display: none; }
       <button id="btn-tv2" class="btn-tv btn-tv2" type="button" title="Tela cheia para TV (troca de turno sem sair)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Modo TV</span></button>
     </div>
   </div>
+
+  <a class="mun-link" href="municipal/"><span><b>Prefeito e Vereadores</b> · apuração municipal de qualquer cidade, com câmara, vereadores e votos por escola</span><span aria-hidden="true">→</span></a>
 
   <div class="t2" id="t2" hidden>
     <nav class="secnav-bar" aria-label="Ir para"><div class="secnav" id="secnav"><a href="#t2-hero" data-alvo="t2-hero">Presidente</a><a href="#t2-mapa" data-alvo="t2-mapa">Mapa</a><a href="#t2-sec" data-alvo="t2-sec">Por escola</a><a href="#t2-gov" data-alvo="t2-gov">Governadores</a><a href="#t2-estados" data-alvo="t2-estados">Estados</a></div></nav>
@@ -934,7 +941,7 @@ const ELE_EST = '6259';           // Eleição Estadual 2026 (Governador, Senado
 const CIDADE_PADRAO = '67610';    // NOVA GRANADA (código TSE)
 const INTERVALO = 60;             // segundos entre atualizações
 // Versão desta página. Quando muda no site publicado, as páginas abertas (inclusive a da TV) se recarregam sozinhas.
-const VERSAO = '2026-10-07-1200';
+const VERSAO = '2026-10-29-2100';
 
 const CARGOS = {
   6: {
@@ -2773,7 +2780,7 @@ function lerBU(b) {
   const env = derLer(b, 0, b.length)[0];
   const cont = env.f.find(x => x.cls === 0 && x.num === 4 && !x.cons);
   const raiz = derLer(b, cont.ini, cont.fim)[0].f;
-  const porEleicao = raiz.find(x => x.cons && x.f.length && x.f.every(y => y.cons && y.f.length && y.f[0].cls === 0 && y.f[0].num === 2 && derInt(b, y.f[0]) > 1000)).f;
+  const porEleicao = raiz.find(x => x.cons && x.f.length && x.f.every(y => y.cons && y.f.length && y.f[0].cls === 0 && y.f[0].num === 2 && derInt(b, y.f[0]) > 100 && y.f.some(z => z.cons))).f;
   const out = { comp: 0, c: {} };
   for (const e of porEleicao) {
     for (const rv of e.f.find(x => x.cons).f) {

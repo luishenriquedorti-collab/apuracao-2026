@@ -7,6 +7,11 @@ Página para a equipe acompanhar a apuração do 1º turno (4/10/2026) em SP, co
 
 **Link:** https://luishenriquedorti-collab.github.io/apuracao-2026/
 
+**Prefeito e Vereadores (eleição municipal):** https://luishenriquedorti-collab.github.io/apuracao-2026/municipal/
+— qualquer cidade do Brasil (padrão: Nova Granada), com prefeito (1º e 2º turno), câmara com a divisão das cadeiras
+(quociente eleitoral, sobras, projeção ao vivo), todos os vereadores, votos por escola/bairro/seção com mapa, planilhas e modo TV.
+Usa a eleição municipal mais recente do TSE (hoje 2024; 2028 entra sozinha quando o TSE publicar). Link direto de uma cidade: `municipal/?c=sp-67610`.
+
 - Dados oficiais do TSE (resultados.tse.jus.br), lidos direto pelo navegador e atualizados a cada 60 segundos.
 - Na aba de deputados: votos em SP, % de válidos, posição no estado, votos na cidade escolhida (padrão: Nova Granada) e a situação oficial (Eleito / Suplente / Não eleito).
 - Comparação com 2022: votos de cada candidato em Nova Granada no 1º turno de 2022 (Dados Abertos do TSE).
